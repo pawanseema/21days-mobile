@@ -1,0 +1,47 @@
+name: twenty_one_days
+description: "21Days — Sahaja Yoga Meditation hub for live sessions, mentors, and recorded wisdom."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  provider: ^6.1.5
+
+  # Networking (21days-media-resources public APIs)
+  http: ^1.4.0
+
+  # Auth (wire Firebase console keys before enabling production login)
+  firebase_core: ^3.15.1
+  firebase_auth: ^5.6.2
+  google_sign_in: ^6.3.0
+
+  # Media & deep links
+  youtube_player_flutter: ^9.1.1
+  url_launcher: ^6.3.1
+
+  # Local session reminders (30 / 15 / 1 min)
+  flutter_local_notifications: ^19.3.0
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.1
+
+  # Typography & polish
+  google_fonts: ^6.2.1
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mockito: ^5.4.6
+  build_runner: ^2.5.4
+
+flutter:
+  uses-material-design: true
