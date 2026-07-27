@@ -16,8 +16,11 @@ class SessionService {
   final http.Client _client;
   final String baseUrl;
 
-  /// GET `/api/live/sessions` — YouTube live + Zoom URLs from backend config.
-  Future<LiveSession> fetchNextSession() async {
+  /// GET `/api/live/sessions`.
+  ///
+  /// Returns `null` when the backend has no live or soon-upcoming broadcast
+  /// (`session: null`).
+  Future<LiveSession?> fetchNextSession() async {
     final uri = Uri.parse('$baseUrl${AppConstants.liveSessionsPath}');
     late final http.Response response;
     try {
@@ -26,7 +29,7 @@ class SessionService {
             uri,
             headers: const {'Accept': 'application/json'},
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(const Duration(seconds: 30));
     } on Exception catch (e) {
       throw SessionException(
         'Cannot reach live session API at $uri. '
@@ -51,8 +54,9 @@ class SessionService {
     }
 
     final sessionJson = decoded['session'];
+    if (sessionJson == null) return null;
     if (sessionJson is! Map<String, dynamic>) {
-      throw SessionException('Missing session object in API response.');
+      throw SessionException('Unexpected session object in API response.');
     }
     return LiveSession.fromJson(sessionJson);
   }

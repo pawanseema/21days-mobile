@@ -23,23 +23,31 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 
 ### Live session response (`GET /api/live/sessions`)
 
+YouTube-backed. Prefers an active live stream on configured channels; else the
+soonest upcoming within ~24h. `session` may be `null`.
+
 ```json
 {
+  "server_time": "ISO-8601",
   "session": {
-    "id": "session_YYYY-MM-DD",
+    "id": "live_<videoId>|upcoming_<videoId>",
+    "status": "live|upcoming",
+    "source": "youtube_live|youtube_upcoming",
+    "video_id": "…",
     "title": "…",
-    "description": "…",
-    "status": "upcoming|live|ended",
-    "starts_at": "ISO-8601",
-    "ends_at": "ISO-8601",
-    "youtube_live_url": "https://…",
-    "zoom_meeting_url": "https://…"
-  },
-  "server_time": "ISO-8601"
+    "channel_id": "…",
+    "channel_title": "…",
+    "channel_handle": "@…",
+    "starts_at": "ISO-8601|null",
+    "ends_at": "ISO-8601|null",
+    "youtube_live_url": "https://www.youtube.com/watch?v=…",
+    "youtube_thumbnail_url": "https://…",
+    "zoom_meeting_url": "https://zoom.us/j/…"
+  }
 }
 ```
 
-Edit join links in the backend config file — not hardcoded in Flutter (except via API).
+Edit channels / Zoom in backend `config/live_sessions.json` — not hardcoded in Flutter.
 
 ### Search result card (`POST /search` → `results[]`)
 

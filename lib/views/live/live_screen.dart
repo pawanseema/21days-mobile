@@ -3,10 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../models/session_model.dart';
 import '../../providers/session_provider.dart';
 import '../../theme/app_theme.dart';
 
-/// Live tab — upcoming (reminders) vs live-now (YouTube / Zoom join).
+/// Live tab — YouTube-backed live / upcoming session from `/api/live/sessions`.
 class LiveScreen extends StatelessWidget {
   const LiveScreen({super.key});
 
@@ -26,6 +27,18 @@ class LiveScreen extends StatelessWidget {
         );
       }
     }
+  }
+
+  String _countdown(LiveSession session) {
+    if (session.isLiveNow) return 'Happening now';
+    final until = session.timeUntilStart;
+    if (until == null) return 'Scheduled on YouTube';
+    if (until.isNegative) return 'Starting soon';
+    if (until.inHours >= 24) {
+      final days = until.inDays;
+      return 'In $days day${days == 1 ? '' : 's'}';
+    }
+    return 'In ${until.inHours}h ${until.inMinutes.remainder(60)}m';
   }
 
   @override
@@ -55,14 +68,6 @@ class LiveScreen extends StatelessWidget {
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'If you are on Chrome/web and Flask logs show 200, the browser '
-                'is likely blocking the response (CORS). Restart the local API '
-                'after enabling CORS, then tap Retry.',
-                style: theme.textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 18),
               ElevatedButton.icon(
                 onPressed: sessionState.refresh,
@@ -77,20 +82,41 @@ class LiveScreen extends StatelessWidget {
 
     final session = sessionState.session;
     if (session == null) {
-      return const Center(child: Text('No upcoming session.'));
+      return RefreshIndicator(
+        onRefresh: sessionState.refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(28, 48, 28, 32),
+          children: [
+            Icon(
+              Icons.self_improvement_outlined,
+              size: 56,
+              color: AppColors.softTeal.withValues(alpha: 0.85),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'No live or upcoming session right now',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'We check the Sahaja Yoga YouTube channels for a stream that '
+              'is live, or scheduled within the next 24 hours. Pull to refresh.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      );
     }
 
-    final dateLabel = DateFormat('EEEE, MMM d').format(session.startsAt);
-    final timeLabel = DateFormat('h:mm a').format(session.startsAt);
-    final until = session.timeUntilStart;
-    final countdown = session.isLiveNow
-        ? 'Happening now'
-        : until.inHours >= 24
-            ? 'In ${until.inDays} day${until.inDays == 1 ? '' : 's'}'
-            : until.isNegative
-                ? 'Starting soon'
-                : 'In ${until.inHours}h ${until.inMinutes.remainder(60)}m';
-
+    final start = session.startsAt;
+    final dateLabel = start == null
+        ? null
+        : DateFormat('EEEE, MMM d').format(start);
+    final timeLabel =
+        start == null ? null : DateFormat('h:mm a').format(start);
     final eyebrow = session.isLiveNow ? 'Live now' : 'Upcoming live session';
 
     return RefreshIndicator(
@@ -100,7 +126,7 @@ class LiveScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
@@ -122,27 +148,70 @@ class LiveScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (session.isLiveNow) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'LIVE',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Text(
                   eyebrow,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.92),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
-                  session.title,
-                  style: theme.textTheme.headlineMedium?.copyWith(
+                  session.title.isEmpty
+                      ? 'Sahaja Yoga meditation'
+                      : session.title,
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 16),
-                _MetaRow(icon: Icons.calendar_today_outlined, label: dateLabel),
+                if (session.channelLabel.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _MetaRow(
+                    icon: Icons.podcasts_outlined,
+                    label: session.channelLabel,
+                  ),
+                ],
+                if (dateLabel != null) ...[
+                  const SizedBox(height: 8),
+                  _MetaRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: dateLabel,
+                  ),
+                ],
+                if (timeLabel != null) ...[
+                  const SizedBox(height: 8),
+                  _MetaRow(
+                    icon: Icons.schedule_outlined,
+                    label: timeLabel,
+                  ),
+                ],
                 const SizedBox(height: 8),
-                _MetaRow(icon: Icons.schedule_outlined, label: timeLabel),
-                const SizedBox(height: 8),
-                _MetaRow(icon: Icons.timelapse_outlined, label: countdown),
+                _MetaRow(
+                  icon: Icons.timelapse_outlined,
+                  label: _countdown(session),
+                ),
                 if (session.isLiveNow) ...[
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 20),
                   Text(
                     'Choose how you would like to join',
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -157,7 +226,10 @@ class LiveScreen extends StatelessWidget {
                           label: 'Watch on YouTube',
                           icon: Icons.play_circle_outline,
                           onPressed: session.hasYouTube
-                              ? () => _open(context, session.youtubeLiveUrl)
+                              ? () => _open(
+                                    context,
+                                    session.youtubeLiveUrl,
+                                  )
                               : null,
                         ),
                       ),
@@ -167,7 +239,10 @@ class LiveScreen extends StatelessWidget {
                           label: 'Join Zoom Meeting',
                           icon: Icons.videocam_outlined,
                           onPressed: session.hasZoom
-                              ? () => _open(context, session.zoomMeetingUrl)
+                              ? () => _open(
+                                    context,
+                                    session.zoomMeetingUrl,
+                                  )
                               : null,
                         ),
                       ),
@@ -177,13 +252,8 @@ class LiveScreen extends StatelessWidget {
               ],
             ),
           ),
-          if (session.description != null &&
-              session.description!.trim().isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Text(session.description!, style: theme.textTheme.bodyLarge),
-          ],
           if (session.isUpcoming) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -196,23 +266,28 @@ class LiveScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Get gentle alerts 30, 15, and 1 minute before this '
-                      'session starts. Join links appear when the session '
-                      'goes live.',
+                      session.canRemind
+                          ? 'Get gentle alerts 30, 15, and 1 minute before this '
+                              'session starts. Join links appear when the stream '
+                              'goes live.'
+                          : 'This session is scheduled on YouTube, but a start '
+                              'time is not available yet. Pull to refresh later.',
                       style: theme.textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 14),
-                    ElevatedButton.icon(
-                      onPressed: sessionState.remindersScheduled
-                          ? null
-                          : sessionState.enableReminders,
-                      icon: const Icon(Icons.notifications_active_outlined),
-                      label: Text(
-                        sessionState.remindersScheduled
-                            ? 'Reminders enabled'
-                            : 'Enable reminder',
+                    if (session.canRemind) ...[
+                      const SizedBox(height: 14),
+                      ElevatedButton.icon(
+                        onPressed: sessionState.remindersScheduled
+                            ? null
+                            : sessionState.enableReminders,
+                        icon: const Icon(Icons.notifications_active_outlined),
+                        label: Text(
+                          sessionState.remindersScheduled
+                              ? 'Reminders enabled'
+                              : 'Enable reminder',
+                        ),
                       ),
-                    ),
+                    ],
                     if (sessionState.statusMessage != null) ...[
                       const SizedBox(height: 10),
                       Text(

@@ -1,28 +1,34 @@
-/// Live meditation session with YouTube + Zoom join links from the backend.
+/// Live / upcoming session from `GET /api/live/sessions` (YouTube-backed).
 class LiveSession {
   const LiveSession({
     required this.id,
     required this.title,
-    required this.startsAt,
-    required this.endsAt,
     required this.status,
     required this.youtubeLiveUrl,
     required this.zoomMeetingUrl,
-    this.description,
-    this.timezone,
-    this.earlyJoinMinutes = 5,
+    this.videoId = '',
+    this.source = '',
+    this.channelId = '',
+    this.channelTitle = '',
+    this.channelHandle = '',
+    this.youtubeThumbnailUrl = '',
+    this.startsAt,
+    this.endsAt,
   });
 
   final String id;
   final String title;
-  final DateTime startsAt;
-  final DateTime endsAt;
   final LiveSessionStatus status;
+  final String source;
+  final String videoId;
+  final String channelId;
+  final String channelTitle;
+  final String channelHandle;
   final String youtubeLiveUrl;
+  final String youtubeThumbnailUrl;
   final String zoomMeetingUrl;
-  final String? description;
-  final String? timezone;
-  final int earlyJoinMinutes;
+  final DateTime? startsAt;
+  final DateTime? endsAt;
 
   bool get isLiveNow => status == LiveSessionStatus.live;
 
@@ -32,24 +38,46 @@ class LiveSession {
 
   bool get hasZoom => zoomMeetingUrl.trim().isNotEmpty;
 
-  Duration get timeUntilStart => startsAt.difference(DateTime.now());
+  bool get hasThumbnail => youtubeThumbnailUrl.trim().isNotEmpty;
+
+  bool get canRemind => isUpcoming && startsAt != null;
+
+  String get channelLabel {
+    if (channelTitle.trim().isNotEmpty) return channelTitle.trim();
+    if (channelHandle.trim().isNotEmpty) return channelHandle.trim();
+    return '';
+  }
+
+  Duration? get timeUntilStart {
+    final start = startsAt;
+    if (start == null) return null;
+    return start.difference(DateTime.now());
+  }
 
   /// Preferred deep-link payload for reminder notifications.
   String get primaryJoinUrl =>
       hasYouTube ? youtubeLiveUrl : zoomMeetingUrl;
 
   factory LiveSession.fromJson(Map<String, dynamic> json) {
+    DateTime? parseTime(Object? raw) {
+      if (raw is! String || raw.trim().isEmpty) return null;
+      return DateTime.parse(raw).toLocal();
+    }
+
     return LiveSession(
       id: (json['id'] ?? '') as String,
       title: (json['title'] ?? 'Live Meditation') as String,
-      startsAt: DateTime.parse(json['starts_at'] as String).toLocal(),
-      endsAt: DateTime.parse(json['ends_at'] as String).toLocal(),
       status: LiveSessionStatus.fromApi(json['status'] as String?),
+      source: (json['source'] ?? '') as String,
+      videoId: (json['video_id'] ?? '') as String,
+      channelId: (json['channel_id'] ?? '') as String,
+      channelTitle: (json['channel_title'] ?? '') as String,
+      channelHandle: (json['channel_handle'] ?? '') as String,
       youtubeLiveUrl: (json['youtube_live_url'] ?? '') as String,
+      youtubeThumbnailUrl: (json['youtube_thumbnail_url'] ?? '') as String,
       zoomMeetingUrl: (json['zoom_meeting_url'] ?? '') as String,
-      description: json['description'] as String?,
-      timezone: json['timezone'] as String?,
-      earlyJoinMinutes: (json['early_join_minutes'] as int?) ?? 5,
+      startsAt: parseTime(json['starts_at']),
+      endsAt: parseTime(json['ends_at']),
     );
   }
 }

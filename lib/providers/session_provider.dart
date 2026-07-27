@@ -53,7 +53,7 @@ class SessionProvider extends ChangeNotifier {
   /// Initializes notifications and schedules 30/15/1 min alerts (upcoming only).
   Future<void> enableReminders() async {
     final session = _session;
-    if (session == null || !session.isUpcoming) return;
+    if (session == null || !session.canRemind) return;
 
     try {
       await _notificationService.initialize();

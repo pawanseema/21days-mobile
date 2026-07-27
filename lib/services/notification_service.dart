@@ -93,6 +93,11 @@ class NotificationService {
       await initialize();
     }
 
+    final startsAt = session.startsAt;
+    if (startsAt == null) {
+      throw StateError('Cannot schedule reminders without starts_at');
+    }
+
     await cancelSessionReminders(session.id);
 
     const offsets = <Duration>[
@@ -102,7 +107,7 @@ class NotificationService {
     ];
 
     for (final offset in offsets) {
-      final when = session.startsAt.subtract(offset);
+      final when = startsAt.subtract(offset);
       if (when.isBefore(DateTime.now())) continue;
 
       final id = _notificationId(session.id, offset.inMinutes);
