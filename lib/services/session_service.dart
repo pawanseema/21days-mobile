@@ -1,26 +1,77 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import '../models/session_model.dart';
 import '../utils/constants.dart';
 
-/// Provides the next live meditation (mock calendar for now).
+/// Fetches the current / next live session from the media-resources API.
 class SessionService {
-  /// Returns the upcoming session — prefers a near-future slot for demos.
-  LiveSession getNextSession({DateTime? now}) {
-    final current = now ?? DateTime.now();
-    // Next session: today at 7:00 PM local, or tomorrow if already past.
-    var start = DateTime(current.year, current.month, current.day, 19);
-    if (!start.isAfter(current.add(const Duration(minutes: 2)))) {
-      start = start.add(const Duration(days: 1));
+  SessionService({
+    http.Client? client,
+    String? baseUrl,
+  })  : baseUrl = _normalizeBaseUrl(baseUrl ?? AppConstants.apiBaseUrl),
+        _client = client ?? http.Client();
+
+  final http.Client _client;
+  final String baseUrl;
+
+  /// GET `/api/live/sessions` — YouTube live + Zoom URLs from backend config.
+  Future<LiveSession> fetchNextSession() async {
+    final uri = Uri.parse('$baseUrl${AppConstants.liveSessionsPath}');
+    late final http.Response response;
+    try {
+      response = await _client
+          .get(
+            uri,
+            headers: const {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 20));
+    } on Exception catch (e) {
+      throw SessionException(
+        'Cannot reach live session API at $uri. '
+        'Is the backend running? ($e)',
+      );
     }
 
-    return LiveSession(
-      id: 'session_${start.toIso8601String()}',
-      title: 'Evening Collective Meditation',
-      startsAt: start,
-      joinUrl: AppConstants.defaultYouTubeLiveUrl,
-      platform: LivePlatform.youtube,
-      description:
-          'Join the live Sahaja Yoga meditation on YouTube. Arrive a few '
-          'minutes early to settle your attention.',
-    );
+    if (response.statusCode != 200) {
+      throw SessionException(
+        'Live session fetch failed (${response.statusCode}): ${response.body}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw SessionException('Unexpected live session response shape.');
+    }
+    if (decoded.containsKey('error')) {
+      throw SessionException(
+        decoded['message']?.toString() ?? decoded['error'].toString(),
+      );
+    }
+
+    final sessionJson = decoded['session'];
+    if (sessionJson is! Map<String, dynamic>) {
+      throw SessionException('Missing session object in API response.');
+    }
+    return LiveSession.fromJson(sessionJson);
   }
+
+  static String _normalizeBaseUrl(String url) {
+    final trimmed = url.trim();
+    if (trimmed.endsWith('/')) {
+      return trimmed.substring(0, trimmed.length - 1);
+    }
+    return trimmed;
+  }
+
+  void dispose() => _client.close();
+}
+
+class SessionException implements Exception {
+  SessionException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'SessionException: $message';
 }

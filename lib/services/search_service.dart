@@ -2,14 +2,16 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/handout_model.dart';
 import '../models/recording_model.dart';
+import '../models/ui_config_model.dart';
 import '../utils/constants.dart';
 
 /// Client for the 21days-media-resources semantic search APIs.
 ///
-/// Always calls the live backend:
-/// - Local: `http://127.0.0.1:5005` (default)
-/// - Cloud Run: pass `--dart-define=API_BASE_URL=https://…run.app`
+/// - Videos: `POST /search`
+/// - Handouts: `POST /api/resources/search`
+/// - Related: `POST /api/videos/related`
 class SearchService {
   SearchService({
     http.Client? client,
@@ -20,8 +22,28 @@ class SearchService {
   final http.Client _client;
   final String baseUrl;
 
-  /// POST `/search` — video timestamp sections (Resources tab).
-  Future<SearchResponse> searchRecordings({
+  /// GET `/api/ui-config` — feature flags for more-like-this / debug UI.
+  Future<UiConfig> fetchUiConfig() async {
+    final uri = Uri.parse('$baseUrl${AppConstants.uiConfigPath}');
+    try {
+      final response = await _client
+          .get(uri, headers: const {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        return const UiConfig();
+      }
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return UiConfig.fromJson(decoded);
+      }
+    } catch (_) {
+      // Defaults match local Flask when config is unreachable.
+    }
+    return const UiConfig();
+  }
+
+  /// POST `/search` — video timestamp sections.
+  Future<SearchResponse> searchVideos({
     required String query,
     int topK = 8,
   }) async {
@@ -30,55 +52,77 @@ class SearchService {
       return const SearchResponse(query: '', results: [], count: 0);
     }
 
-    final uri = Uri.parse('$baseUrl${AppConstants.searchPath}');
-    late final http.Response response;
-    try {
-      response = await _client
-          .post(
-            uri,
-            headers: const {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode({'query': trimmed, 'top_k': topK}),
-          )
-          .timeout(const Duration(seconds: 60));
-    } on Exception catch (e) {
-      throw SearchException(
-        'Cannot reach search API at $uri. '
-        'Start local Flask on :5005, or set API_BASE_URL to your Cloud Run URL. ($e)',
-      );
-    }
-
-    if (response.statusCode != 200) {
-      throw SearchException(
-        'Search failed (${response.statusCode}): ${response.body}',
-      );
-    }
-
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw SearchException('Unexpected search response shape.');
-    }
-    if (decoded.containsKey('error')) {
-      throw SearchException(
-        decoded['message']?.toString() ?? decoded['error'].toString(),
-      );
-    }
-    return SearchResponse.fromJson(decoded);
+    final body = await _postJson(
+      path: AppConstants.searchPath,
+      payload: {'query': trimmed, 'top_k': topK},
+      label: 'video search',
+    );
+    return SearchResponse.fromJson(body);
   }
 
-  /// POST `/api/resources/search` — handout / document search.
-  Future<SearchResponse> searchHandouts({
+  /// Back-compat alias used by older call sites.
+  Future<SearchResponse> searchRecordings({
     required String query,
-    int topK = 5,
+    int topK = 8,
+  }) =>
+      searchVideos(query: query, topK: topK);
+
+  /// POST `/api/resources/search` — handout / document search.
+  Future<HandoutSearchResponse> searchHandouts({
+    required String query,
+    int topK = 8,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
-      return const SearchResponse(query: '', results: [], count: 0);
+      return const HandoutSearchResponse(query: '', results: [], count: 0);
     }
 
-    final uri = Uri.parse('$baseUrl${AppConstants.resourceSearchPath}');
+    final body = await _postJson(
+      path: AppConstants.resourceSearchPath,
+      payload: {'query': trimmed, 'top_k': topK},
+      label: 'handout search',
+    );
+    return HandoutSearchResponse.fromJson(body);
+  }
+
+  /// POST `/api/videos/related` — more-like-this for a seed clip.
+  Future<RelatedVideosResponse> fetchRelatedVideos({
+    required RecordingResult seed,
+    int topK = 5,
+  }) async {
+    if (!seed.canRequestRelated) {
+      throw SearchException(
+        'Cannot find related clips for this result '
+        '(missing chroma id or video id/timestamp).',
+      );
+    }
+
+    final Map<String, dynamic> payload;
+    final chromaId = seed.chromaId?.trim();
+    if (chromaId != null && chromaId.isNotEmpty) {
+      payload = {'id': chromaId, 'top_k': topK};
+    } else {
+      payload = {
+        'video_id': seed.videoId,
+        'timestamp': seed.timestamp,
+        'top_k': topK,
+      };
+    }
+
+    final body = await _postJson(
+      path: AppConstants.relatedVideosPath,
+      payload: payload,
+      label: 'related videos',
+    );
+    return RelatedVideosResponse.fromJson(body, fallbackSeed: seed);
+  }
+
+  Future<Map<String, dynamic>> _postJson({
+    required String path,
+    required Map<String, dynamic> payload,
+    required String label,
+  }) async {
+    final uri = Uri.parse('$baseUrl$path');
     late final http.Response response;
     try {
       response = await _client
@@ -88,31 +132,32 @@ class SearchService {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
             },
-            body: jsonEncode({'query': trimmed, 'top_k': topK}),
+            body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 60));
     } on Exception catch (e) {
       throw SearchException(
-        'Cannot reach resource search API at $uri. ($e)',
+        'Cannot reach $label API at $uri. '
+        'Is Flask running, or is API_BASE_URL set? ($e)',
       );
     }
 
     if (response.statusCode != 200) {
       throw SearchException(
-        'Resource search failed (${response.statusCode}): ${response.body}',
+        '$label failed (${response.statusCode}): ${response.body}',
       );
     }
 
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw SearchException('Unexpected resource search response shape.');
+      throw SearchException('Unexpected $label response shape.');
     }
     if (decoded.containsKey('error')) {
       throw SearchException(
         decoded['message']?.toString() ?? decoded['error'].toString(),
       );
     }
-    return SearchResponse.fromJson(decoded);
+    return decoded;
   }
 
   static String _normalizeBaseUrl(String url) {
@@ -124,6 +169,39 @@ class SearchService {
   }
 
   void dispose() => _client.close();
+}
+
+/// Response from `POST /api/videos/related`.
+class RelatedVideosResponse {
+  const RelatedVideosResponse({
+    required this.results,
+    required this.count,
+    this.seed,
+  });
+
+  final RecordingResult? seed;
+  final List<RecordingResult> results;
+  final int count;
+
+  factory RelatedVideosResponse.fromJson(
+    Map<String, dynamic> json, {
+    RecordingResult? fallbackSeed,
+  }) {
+    final raw = (json['results'] as List<dynamic>? ?? const []);
+    final results = raw
+        .map((e) => RecordingResult.fromJson(e as Map<String, dynamic>))
+        .toList();
+    RecordingResult? seed;
+    final seedJson = json['seed'];
+    if (seedJson is Map<String, dynamic>) {
+      seed = RecordingResult.fromJson(seedJson);
+    }
+    return RelatedVideosResponse(
+      seed: seed ?? fallbackSeed,
+      results: results,
+      count: (json['count'] as int?) ?? results.length,
+    );
+  }
 }
 
 class SearchException implements Exception {

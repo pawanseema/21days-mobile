@@ -1,0 +1,70 @@
+---
+description: 21days-media-resources backend API contract for this Flutter app
+globs: lib/services/**/*.dart,lib/providers/**/*.dart,lib/models/**/*.dart,lib/utils/constants.dart
+alwaysApply: false
+---
+
+# Media-resources backend
+
+Sibling repo: `/Users/pawansaxena/playpen/21days-media-resources`  
+Source of truth: `api/flask_api_server.py`, `DESIGN.md`  
+Base URL: `AppConstants.apiBaseUrl` (`http://127.0.0.1:5005` local, or Cloud Run via `--dart-define=API_BASE_URL=…`)
+
+When changing networking, models, or Live/Resources screens, prefer calling these public APIs — do not invent parallel shapes.
+
+## Public APIs used by the app
+
+| Method | Path | Body / notes |
+|--------|------|----------------|
+| GET | `/health` | `{ "status": "healthy" }` |
+| GET | `/api/live/sessions` | Next/current session; URLs from `config/live_sessions.json` |
+| POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
+| POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
+
+### Live session response (`GET /api/live/sessions`)
+
+```json
+{
+  "session": {
+    "id": "session_YYYY-MM-DD",
+    "title": "…",
+    "description": "…",
+    "status": "upcoming|live|ended",
+    "starts_at": "ISO-8601",
+    "ends_at": "ISO-8601",
+    "youtube_live_url": "https://…",
+    "zoom_meeting_url": "https://…"
+  },
+  "server_time": "ISO-8601"
+}
+```
+
+Edit join links in the backend config file — not hardcoded in Flutter (except via API).
+
+### Search result card (`POST /search` → `results[]`)
+
+Fields: `video_title`, `section_title`, `video_id`, `timestamp`, `summary`, `url`, `chakra`, `quote`, `hashtags`, `published_at`, `confidence`, optional `section_duration_seconds`, `chroma_id`.
+
+### Handout result card (`POST /api/resources/search` → `results[]`)
+
+Fields: `resource_id`, `title`, `description`, `topic`, `tags` (array), `download_url`, `file_type`, `created_at`, `confidence`.
+
+Map these in `RecordingResult` / `HandoutResult` / `LiveSession` — keep snake_case JSON ↔ Dart models in sync.
+
+## Resources UI conventions
+
+- Tabs: **Videos** → `/search`, **Handouts** → `/api/resources/search`
+- Video card tap → in-app YouTube player at `timestamp` (web may open watch URL)
+- After closing the player, that card shows **Find similar clips**
+- Similar clips → `POST /api/videos/related` with `{ id: chroma_id }` or `{ video_id, timestamp }`
+- Related banner: “Showing more like: …” + **← Back to Search Result**
+- Handout card tap → open `download_url` externally
+- Respect `GET /api/ui-config` → `enableMoreLikeThis` (default true)
+- Match card fields from sibling `ui/search.html`
+
+## Conventions
+
+- No mock search/session paths; fail clearly if the API is unreachable.
+- Admin/mutating routes (`/api/*/ingest`, resource PUT) are **not** for the mobile client.
+- If the backend contract changes, update `lib/services/*` + models together, and skim sibling `DESIGN.md` / Flask routes before inventing fields.
+- For deeper backend edits, open or `@`-mention files under `../21days-media-resources/`.

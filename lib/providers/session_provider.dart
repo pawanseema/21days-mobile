@@ -17,24 +17,43 @@ class SessionProvider extends ChangeNotifier {
   final SessionService _sessionService;
   final NotificationService _notificationService;
 
-  LiveSession? _nextSession;
+  LiveSession? _session;
+  bool _loading = true;
+  String? _error;
   bool _remindersScheduled = false;
   String? _statusMessage;
 
-  LiveSession? get nextSession => _nextSession;
+  LiveSession? get session => _session;
+  LiveSession? get nextSession => _session; // back-compat for older call sites
+  bool get isLoading => _loading;
+  String? get error => _error;
   bool get remindersScheduled => _remindersScheduled;
   String? get statusMessage => _statusMessage;
   NotificationService get notifications => _notificationService;
 
-  void refresh() {
-    _nextSession = _sessionService.getNextSession();
+  Future<void> refresh() async {
+    _loading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      _session = await _sessionService.fetchNextSession();
+      _remindersScheduled = false;
+      _statusMessage = null;
+    } catch (e) {
+      debugPrint('SessionProvider refresh failed: $e');
+      _session = null;
+      _error = e.toString();
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
-  /// Initializes notifications and schedules 30/15/1 min alerts.
+  /// Initializes notifications and schedules 30/15/1 min alerts (upcoming only).
   Future<void> enableReminders() async {
-    final session = _nextSession;
-    if (session == null) return;
+    final session = _session;
+    if (session == null || !session.isUpcoming) return;
 
     try {
       await _notificationService.initialize();
@@ -47,5 +66,11 @@ class SessionProvider extends ChangeNotifier {
       _statusMessage = 'Could not schedule reminders on this device.';
     }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _sessionService.dispose();
+    super.dispose();
   }
 }

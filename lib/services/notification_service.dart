@@ -131,7 +131,7 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: session.joinUrl,
+        payload: session.primaryJoinUrl,
       );
     }
   }

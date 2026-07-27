@@ -30,12 +30,44 @@ class RecordingResult {
   final int? sectionDurationSeconds;
   final String? chromaId;
 
+  /// Identity key matching media-resources `seedKey()` (`videoId|timestamp`).
+  String get seedKey {
+    final vid = videoId.isNotEmpty ? videoId : '';
+    return '$vid|$timestamp';
+  }
+
+  bool get canRequestRelated =>
+      (chromaId != null && chromaId!.trim().isNotEmpty) ||
+      (videoId.trim().isNotEmpty && timestamp.trim().isNotEmpty);
+
+  /// Start offset in seconds from `timestamp` (e.g. `4:12` → 252).
+  int get startSeconds => _timestampToSeconds(timestamp);
+
   String get youtubeWatchUrl {
+    if (videoId.isNotEmpty) {
+      final base = 'https://www.youtube.com/watch?v=$videoId';
+      if (startSeconds <= 0) return base;
+      return '$base&t=${startSeconds}s';
+    }
     if (url.isNotEmpty) return url;
-    if (videoId.isEmpty) return '';
-    final base = 'https://www.youtube.com/watch?v=$videoId';
-    if (timestamp.isEmpty) return base;
-    return '$base&t=${_timestampToSeconds(timestamp)}s';
+    return '';
+  }
+
+  String? get thumbnailUrl {
+    if (videoId.isEmpty) return null;
+    return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+  }
+
+  String? get durationLabel {
+    final seconds = sectionDurationSeconds;
+    if (seconds == null || seconds <= 0) return null;
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    final s = seconds % 60;
+    if (h > 0) {
+      return 'Length $h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
+    return 'Length $m:${s.toString().padLeft(2, '0')}';
   }
 
   factory RecordingResult.fromJson(Map<String, dynamic> json) {

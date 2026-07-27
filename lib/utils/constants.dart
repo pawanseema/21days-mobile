@@ -21,10 +21,12 @@ class AppConstants {
   /// Handout / resource search.
   static const String resourceSearchPath = '/api/resources/search';
 
-  /// Placeholder live-session destinations (replace with real calendar links).
-  static const String defaultZoomUrl = 'https://zoom.us/j/placeholder';
-  static const String defaultYouTubeLiveUrl =
-      'https://www.youtube.com/@SahajaYogaMeditation/live';
-  static const String defaultYouTubeChannelUrl =
-      'https://www.youtube.com/@SahajaYogaMeditation';
+  /// Related / more-like-this video sections.
+  static const String relatedVideosPath = '/api/videos/related';
+
+  /// Feature flags for the HTML UI (more-like-this, debug fields, etc.).
+  static const String uiConfigPath = '/api/ui-config';
+
+  /// Current / next live meditation session (YouTube + Zoom links).
+  static const String liveSessionsPath = '/api/live/sessions';
 }

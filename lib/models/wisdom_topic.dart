@@ -21,15 +21,30 @@ class WisdomCatalog {
 
   static const List<WisdomTopic> topics = [
     WisdomTopic(
+      id: 'origin-of-sahaja-yoga',
+      title: 'The origin of Sahaja Yoga',
+      subtitle: 'Shri Mataji and the gift of Self-Realization',
+      accentLabel: 'Origins',
+      body:
+          'Sahaja Yoga was founded in 1970 by Nirmala Srivastava (1923-2011), '
+          'known by millions of Her spiritual followers as Shri Mataji '
+          'Nirmala Devi. Shri Mataji discovered a technique to awaken the '
+          'Kundalini energy within human beings. She dedicated Her life to '
+          'teaching people of all nationalities, races, and religious '
+          'backgrounds how to use Sahaja Yoga to better theirs. She envisioned '
+          'the regular practice of Sahaja Yoga producing evolved societies, '
+          'where people lead joyful, balanced lives.',
+    ),
+    WisdomTopic(
       id: 'subtle-system',
       title: 'The Subtle System',
       subtitle: 'Channels of awareness within',
       accentLabel: 'Foundation',
       body:
-          'Sahaja Yoga describes a living subtle system of energy channels '
-          '(nadis) and energy centers (chakras). Through spontaneous awakening '
-          'of Kundalini, one can feel the cool breeze of the Spirit and '
-          'experience thoughtless awareness.',
+          'The subtle system is the network of energy centers (chakras) and channels (nadis) '
+          'along the central nervous system through which our Kundalini flows. Sahaja Yoga '
+          'helps you learn to feel, understand and ultimately use your own subtle system to '
+          'achieve Self-Realization.',
     ),
     WisdomTopic(
       id: 'chakras',
@@ -37,9 +52,18 @@ class WisdomCatalog {
       subtitle: 'Seven centers of integration',
       accentLabel: 'Inner map',
       body:
-          'Each chakra governs qualities such as innocence, creativity, '
-          'peace, love, forgiveness, and pure attention. Meditation helps '
-          'balance these centers so the attention becomes light and joyful.',
+          'There are seven main chakras (energy centers) located along the '
+          'spine. They are the fulcrums that control most aspects of our '
+          'physical, mental and spiritual lives. Chakras are located at the '
+          'sites of our main nerve plexuses.\n\n'
+          'Often difficulties in life can be traced to imbalances or '
+          'blockages in one or more chakras. Chakras are connected by nadis '
+          '(or channels). When the Kundalini rises and nourishes the chakras, '
+          'our body automatically becomes dynamic, creative and integrated.\n\n'
+          'Each chakra has a physical manifestation in your nervous system '
+          'and is responsible for the smooth functioning of part of your '
+          'physiology. Additionally, each chakra has subtle qualities, an '
+          'essence that can influence your character and personality.',
     ),
     WisdomTopic(
       id: 'kundalini',
@@ -47,9 +71,12 @@ class WisdomCatalog {
       subtitle: 'The residual power of pure desire',
       accentLabel: 'Awakening',
       body:
-          'Kundalini rests in the sacrum bone and rises through the central '
-          'channel during Self-realization, granting the experience of the '
-          'Spirit — a cool, peaceful vibration on the palms and above the head.',
+          'Your inner energy, or Kundalini, is a soothing spiritual energy '
+          'that lies dormant at the base of the spine. It is an expression '
+          'of the pure desire to evolve and better ourselves, something we '
+          'all possess. When awakened, it rises through the central channel, '
+          'clearing and activating your chakras. It allows you to achieve '
+          'your Self-Realization.',
     ),
     WisdomTopic(
       id: 'left-right-channels',
