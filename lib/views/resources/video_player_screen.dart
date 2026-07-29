@@ -120,7 +120,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     if (kIsWeb) {
       final embed = buildYoutubeEmbed(result);
       return Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: AppColors.pageBlue,
         appBar: AppBar(
           title: Text(
             title.isEmpty ? 'Video' : title,
@@ -162,7 +162,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ),
       builder: (context, player) {
         return Scaffold(
-          backgroundColor: AppColors.cream,
+          backgroundColor: AppColors.pageBlue,
           appBar: AppBar(
             title: Text(
               title.isEmpty ? 'Video' : title,

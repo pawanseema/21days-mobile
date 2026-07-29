@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/constants.dart';
 import '../live/live_screen.dart';
 import '../mentor/mentor_screen.dart';
@@ -39,7 +40,9 @@ class HomeShell extends StatelessWidget {
               child: Center(
                 child: Text(
                   user.greetingName,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.ink,
+                  ),
                 ),
               ),
             ),

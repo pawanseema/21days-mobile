@@ -1,23 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Serene Sahaja-inspired palette: clean whites, soft orange & teal.
+/// Brand palette aligned with media-resources `ui/search.html`
+/// (mobile: blue ~25% lighter; yellow further lightened for banners).
 class AppColors {
   AppColors._();
 
-  static const Color cream = Color(0xFFFFFBF7);
-  static const Color softWhite = Color(0xFFFAF8F5);
-  static const Color softOrange = Color(0xFFE8A87C);
-  static const Color warmOrange = Color(0xFFD4845A);
-  static const Color softTeal = Color(0xFF7BA7A0);
-  static const Color deepTeal = Color(0xFF4A7C74);
-  static const Color ink = Color(0xFF2C3332);
-  static const Color mutedInk = Color(0xFF5C6664);
-  static const Color mist = Color(0xFFE8EFED);
-  static const Color apricotMist = Color(0xFFF7EDE4);
+  /// Page background — ~25% lighter than search.html `#67b7f8`.
+  static const Color pageBlue = Color(0xFF8DC9FA);
+
+  /// Title / nav banner yellow — lighter pastel than search.html `#ffcf32`.
+  static const Color bannerYellow = Color(0xFFFFE58A);
+
+  /// Primary ink used for buttons and text on yellow banners.
+  static const Color ink = Color(0xFF133B5B);
+
+  static const Color mutedInk = Color(0xFF3D5A73);
+  static const Color softWhite = Color(0xFFFFFFF8);
+  static const Color mist = Color(0xFFD6EAF8);
+  static const Color softYellow = Color(0xFFFFF8E0);
+
+  // Legacy aliases — mapped onto the new brand so existing screens pick it up.
+  static const Color cream = pageBlue;
+  static const Color softOrange = Color(0xFFFFE08A);
+  static const Color warmOrange = Color(0xFFE8B020);
+  static const Color softTeal = Color(0xFF4A8FBF);
+  static const Color deepTeal = ink;
+  static const Color apricotMist = softYellow;
 }
 
-/// Elegant typography + light surfaces for a spiritual, calm feel.
+/// Typography + surfaces for the blue / yellow brand.
 class AppTheme {
   AppTheme._();
 
@@ -29,15 +41,15 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        primary: AppColors.deepTeal,
+        primary: AppColors.ink,
         onPrimary: Colors.white,
-        secondary: AppColors.warmOrange,
-        onSecondary: Colors.white,
+        secondary: AppColors.bannerYellow,
+        onSecondary: AppColors.ink,
         surface: AppColors.softWhite,
         onSurface: AppColors.ink,
-        tertiary: AppColors.softOrange,
+        tertiary: AppColors.warmOrange,
       ),
-      scaffoldBackgroundColor: AppColors.cream,
+      scaffoldBackgroundColor: AppColors.pageBlue,
     );
 
     return base.copyWith(
@@ -85,26 +97,28 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.bannerYellow,
         foregroundColor: AppColors.ink,
         titleTextStyle: display.titleLarge?.copyWith(
           color: AppColors.ink,
-          fontWeight: FontWeight.w600,
-          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          fontSize: 22,
         ),
+        iconTheme: const IconThemeData(color: AppColors.ink),
+        actionsIconTheme: const IconThemeData(color: AppColors.ink),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.softWhite,
-        selectedItemColor: AppColors.deepTeal,
+        backgroundColor: AppColors.bannerYellow,
+        selectedItemColor: AppColors.ink,
         unselectedItemColor: AppColors.mutedInk,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+        elevation: 10,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
         unselectedLabelStyle: TextStyle(fontSize: 12),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.deepTeal,
+          backgroundColor: AppColors.ink,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
@@ -115,8 +129,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.deepTeal,
-          side: const BorderSide(color: AppColors.softTeal, width: 1.2),
+          foregroundColor: AppColors.ink,
+          side: const BorderSide(color: AppColors.ink, width: 1.2),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -137,7 +151,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.softTeal, width: 1.6),
+          borderSide: const BorderSide(color: AppColors.ink, width: 1.6),
         ),
         hintStyle: const TextStyle(color: AppColors.mutedInk),
       ),
