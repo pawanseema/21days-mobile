@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twenty_one_days/services/auth_service.dart';
 
-/// Unit tests / stubs for [AuthService] validation and mock sign-in flows.
+/// Unit tests for [AuthService] validation, mock, guest, and persistence.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AuthService validation', () {
     test('isValidEmail accepts well-formed addresses', () {
       expect(AuthService.isValidEmail('seeker@example.com'), isTrue);
@@ -25,8 +28,10 @@ void main() {
   group('AuthService mock email flow', () {
     late AuthService auth;
 
-    setUp(() {
-      auth = AuthService(useMockBackend: true);
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      auth = AuthService(useMockBackend: true, prefs: prefs);
     });
 
     test('signInWithEmail succeeds with valid credentials', () async {
@@ -72,7 +77,6 @@ void main() {
       expect(result.user?.displayName, 'Ananya');
     });
 
-    // Stub: replace with FirebaseAuth mocks once production auth is wired.
     test('signInWithGoogle mock placeholder returns a Google user', () async {
       final result = await auth.signInWithGoogle();
 
@@ -90,13 +94,61 @@ void main() {
       expect(auth.currentUser, isNull);
       expect(auth.isSignedIn, isFalse);
     });
+
+    test('mock session restores after cold start', () async {
+      await auth.signInWithEmail(
+        email: 'seeker@example.com',
+        password: 'secret1',
+      );
+      final prefs = await SharedPreferences.getInstance();
+      final restored = AuthService(useMockBackend: true, prefs: prefs);
+      final user = await restored.restoreSession();
+      expect(user?.email, 'seeker@example.com');
+    });
+  });
+
+  group('AuthService guest', () {
+    late AuthService auth;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      auth = AuthService(useMockBackend: true, prefs: prefs);
+    });
+
+    test('continueAsGuest creates a local guest user', () async {
+      final result = await auth.continueAsGuest();
+      expect(result.isSuccess, isTrue);
+      expect(result.user?.isGuest, isTrue);
+      expect(result.user?.greetingName, 'Guest');
+    });
+
+    test('guest session restores after cold start', () async {
+      await auth.continueAsGuest();
+      final prefs = await SharedPreferences.getInstance();
+      final restored = AuthService(useMockBackend: true, prefs: prefs);
+      final user = await restored.restoreSession();
+      expect(user?.isGuest, isTrue);
+    });
+
+    test('deleteAccount clears guest session', () async {
+      await auth.continueAsGuest();
+      final result = await auth.deleteAccount();
+      expect(result.isSuccess, isTrue);
+      expect(auth.currentUser, isNull);
+      final prefs = await SharedPreferences.getInstance();
+      final again = AuthService(useMockBackend: true, prefs: prefs);
+      expect(await again.restoreSession(), isNull);
+    });
   });
 
   group('AuthService Firebase stubs', () {
     test(
       'non-mock backend returns configuration failure (stub until Firebase)',
       () async {
-        final auth = AuthService(useMockBackend: false);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final auth = AuthService(useMockBackend: false, prefs: prefs);
         final result = await auth.signInWithEmail(
           email: 'seeker@example.com',
           password: 'secret1',

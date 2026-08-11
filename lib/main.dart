@@ -6,6 +6,8 @@ import 'providers/mentor_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/session_provider.dart';
+import 'services/auth_service.dart';
+import 'services/firebase_bootstrap.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
@@ -23,23 +25,36 @@ Future<void> main() async {
     debugPrint('Notification bootstrap skipped: $e');
   }
 
-  // Firebase is optional until google-services / GoogleService-Info are added.
-  // await Firebase.initializeApp();
+  final firebaseReady = await bootstrapFirebase();
 
-  runApp(TwentyOneDaysApp(notificationService: notifications));
+  runApp(
+    TwentyOneDaysApp(
+      notificationService: notifications,
+      useMockAuth: !firebaseReady,
+    ),
+  );
 }
 
 /// 21Days — Sahaja Yoga Meditation hub.
 class TwentyOneDaysApp extends StatelessWidget {
-  const TwentyOneDaysApp({super.key, required this.notificationService});
+  const TwentyOneDaysApp({
+    super.key,
+    required this.notificationService,
+    this.useMockAuth = true,
+  });
 
   final NotificationService notificationService;
+  final bool useMockAuth;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            authService: AuthService(useMockBackend: useMockAuth),
+          )..restoreSession(),
+        ),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(
@@ -66,6 +81,12 @@ class _AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    if (auth.isRestoring) {
+      return const Scaffold(
+        key: ValueKey('restoring'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       child: auth.isAuthenticated

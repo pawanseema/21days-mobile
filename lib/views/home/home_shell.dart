@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/constants.dart';
+import '../account/account_screen.dart';
 import '../live/live_screen.dart';
 import '../mentor/mentor_screen.dart';
 import '../resources/resources_screen.dart';
@@ -46,6 +47,17 @@ class HomeShell extends StatelessWidget {
                 ),
               ),
             ),
+          IconButton(
+            tooltip: 'Account',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AccountScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.manage_accounts_outlined),
+          ),
           IconButton(
             tooltip: 'Sign out',
             onPressed: () => context.read<AuthProvider>().signOut(),

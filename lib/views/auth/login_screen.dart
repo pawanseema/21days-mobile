@@ -238,6 +238,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: const Icon(Icons.g_mobiledata, size: 28),
                             label: const Text('Continue with Google'),
                           ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: auth.isBusy ? null : _guest,
+                            child: const Text('Continue as guest'),
+                          ),
                         ],
                       ),
                     ),
@@ -278,5 +283,16 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _guest() async {
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.continueAsGuest();
+    if (!mounted) return;
+    if (!ok && auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+    }
   }
 }

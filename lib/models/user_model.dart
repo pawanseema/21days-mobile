@@ -1,4 +1,4 @@
-/// Authenticated participant profile.
+/// Authenticated or guest participant profile.
 class UserModel {
   const UserModel({
     required this.id,
@@ -9,15 +9,23 @@ class UserModel {
   });
 
   final String id;
+
+  /// Empty for local guests; otherwise the account email (username).
   final String email;
   final String? displayName;
   final String? photoUrl;
   final AuthProviderType authProvider;
 
-  String get greetingName =>
-      (displayName != null && displayName!.trim().isNotEmpty)
-          ? displayName!.trim().split(' ').first
-          : email.split('@').first;
+  bool get isGuest => authProvider == AuthProviderType.guest;
+
+  String get greetingName {
+    if (isGuest) return 'Guest';
+    if (displayName != null && displayName!.trim().isNotEmpty) {
+      return displayName!.trim().split(' ').first;
+    }
+    if (email.contains('@')) return email.split('@').first;
+    return 'Seeker';
+  }
 
   UserModel copyWith({
     String? id,
@@ -46,7 +54,7 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
-      email: json['email'] as String,
+      email: (json['email'] as String?) ?? '',
       displayName: json['displayName'] as String?,
       photoUrl: json['photoUrl'] as String?,
       authProvider: AuthProviderType.values.firstWhere(
@@ -55,6 +63,14 @@ class UserModel {
       ),
     );
   }
+
+  /// Local-only guest identity (not stored in Firebase).
+  static const guest = UserModel(
+    id: 'guest_local',
+    email: '',
+    displayName: 'Guest',
+    authProvider: AuthProviderType.guest,
+  );
 }
 
-enum AuthProviderType { email, google }
+enum AuthProviderType { email, google, guest }
