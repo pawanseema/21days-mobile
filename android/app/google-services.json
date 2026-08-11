@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "396414324120",
+    "project_id": "sy-21days-fb-auth",
+    "storage_bucket": "sy-21days-fb-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396414324120:android:0345b9e943c54a6d466fed",
+        "android_client_info": {
+          "package_name": "com.sahajayoga.twenty_one_days"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396414324120-1k7h98a6v56giu8ngan3tu2c1d7id7mc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBG4nMYZdJbNQoEquhYNTsdenp4z5lCrCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "396414324120-1k7h98a6v56giu8ngan3tu2c1d7id7mc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "396414324120-1bqui91ipuh7okqi4090d43men3kjdn2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sahajayoga.twentyOneDays"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

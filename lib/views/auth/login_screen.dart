@@ -216,6 +216,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   )
                                 : const Text('Sign in with Email'),
                           ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: auth.isBusy
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => const SignUpScreen(),
+                                      ),
+                                    );
+                                  },
+                            child: const Text('Create account with Email'),
+                          ),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -242,35 +255,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: auth.isBusy ? null : _guest,
                             child: const Text('Continue as guest'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const SignUpScreen(),
-                        ),
-                      );
-                    },
-                    child: Text.rich(
-                      TextSpan(
-                        text: 'New to 21Days? ',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Create an account',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.white,
-                            ),
                           ),
                         ],
                       ),

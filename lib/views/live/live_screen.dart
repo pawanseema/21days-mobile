@@ -91,20 +91,24 @@ class LiveScreen extends StatelessWidget {
             Icon(
               Icons.self_improvement_outlined,
               size: 56,
-              color: AppColors.softTeal.withValues(alpha: 0.85),
+              color: AppColors.ink.withValues(alpha: 0.75),
             ),
             const SizedBox(height: 18),
             Text(
               'No live or upcoming session right now',
               textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: AppColors.ink,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               'We check the Sahaja Yoga YouTube channels for a stream that '
-              'is live, or scheduled within the next 24 hours. Pull to refresh.',
+              'is live, or scheduled within the next 72 hours. Pull to refresh.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.mutedInk,
+              ),
             ),
           ],
         ),
@@ -129,21 +133,18 @@ class LiveScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: session.isLiveNow
-                    ? const [
-                        AppColors.warmOrange,
-                        Color(0xFFD4A06A),
-                        AppColors.deepTeal,
-                      ]
-                    : const [
-                        AppColors.deepTeal,
-                        Color(0xFF5F9A92),
-                        AppColors.softOrange,
-                      ],
+              color: Colors.white.withValues(alpha: 0.72),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.9),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ink.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,11 +169,30 @@ class LiveScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.bannerYellow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Upcoming',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
                 Text(
                   eyebrow,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: AppColors.mutedInk,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -181,7 +201,7 @@ class LiveScreen extends StatelessWidget {
                       ? 'Sahaja Yoga meditation'
                       : session.title,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.ink,
                   ),
                 ),
                 if (session.channelLabel.isNotEmpty) ...[
@@ -215,7 +235,7 @@ class LiveScreen extends StatelessWidget {
                   Text(
                     'Choose how you would like to join',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.92),
+                      color: AppColors.mutedInk,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -323,9 +343,9 @@ class _JoinButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.deepTeal,
-        disabledBackgroundColor: Colors.white.withValues(alpha: 0.55),
+        backgroundColor: AppColors.ink,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: AppColors.mist,
         disabledForegroundColor: AppColors.mutedInk,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         shape: RoundedRectangleBorder(
@@ -353,13 +373,13 @@ class _MetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.white.withValues(alpha: 0.9)),
+        Icon(icon, size: 18, color: AppColors.mutedInk),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.ink,
                 ),
           ),
         ),
