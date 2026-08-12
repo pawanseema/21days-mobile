@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/recent_recording.dart';
 import '../models/session_model.dart';
 import '../services/notification_service.dart';
 import '../services/session_service.dart';
 
-/// Live session dashboard state + reminder scheduling.
+/// Live session dashboard state + reminder scheduling + recent recordings.
 class SessionProvider extends ChangeNotifier {
   SessionProvider({
     SessionService? sessionService,
@@ -24,13 +25,15 @@ class SessionProvider extends ChangeNotifier {
   final SharedPreferences? _prefsOverride;
 
   LiveSession? _session;
+  List<RecentRecording> _recent = const [];
   bool _loading = true;
   String? _error;
   bool _remindersScheduled = false;
   String? _statusMessage;
 
   LiveSession? get session => _session;
-  LiveSession? get nextSession => _session; // back-compat for older call sites
+  LiveSession? get nextSession => _session;
+  List<RecentRecording> get recentRecordings => _recent;
   bool get isLoading => _loading;
   String? get error => _error;
   bool get remindersScheduled => _remindersScheduled;
@@ -46,11 +49,20 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _session = await _sessionService.fetchNextSession();
+      final sessionFuture = _sessionService.fetchNextSession();
+      final recentFuture = _sessionService.fetchRecentRecordings();
+      _session = await sessionFuture;
+      try {
+        _recent = await recentFuture;
+      } catch (e) {
+        debugPrint('SessionProvider recent fetch failed: $e');
+        _recent = const [];
+      }
       await _syncReminderFlag();
     } catch (e) {
       debugPrint('SessionProvider refresh failed: $e');
       _session = null;
+      _recent = const [];
       _error = e.toString();
       _remindersScheduled = false;
     } finally {
@@ -59,13 +71,11 @@ class SessionProvider extends ChangeNotifier {
     }
   }
 
-  /// Opens from a reminder tap: clear enabled state (already fired), then refresh.
   Future<void> openFromReminder() async {
     await clearReminderState(notify: false);
     await refresh();
   }
 
-  /// True when the T-5 fire time is still in the future for [session].
   bool _reminderStillPending(LiveSession session) {
     if (!session.canRemind) return false;
     final startsAt = session.startsAt;
@@ -89,7 +99,6 @@ class SessionProvider extends ChangeNotifier {
       return;
     }
 
-    // New / missing session — drop the old reminder booking.
     if (session == null || session.id != storedId) {
       await _notificationService.cancelSessionReminders(storedId);
       await prefs.remove(_prefReminderSessionId);
@@ -98,7 +107,6 @@ class SessionProvider extends ChangeNotifier {
       return;
     }
 
-    // Same session: turn off once fired, live, or no longer remindable.
     if (!_reminderStillPending(session)) {
       await clearReminderState(notify: false);
       return;
@@ -108,7 +116,6 @@ class SessionProvider extends ChangeNotifier {
     _statusMessage = 'Reminder is on — 5 minutes before start.';
   }
 
-  /// Cancels the scheduled notification and clears local “enabled” state.
   Future<void> clearReminderState({bool notify = true}) async {
     final session = _session;
     final prefs = await _prefs();
@@ -122,14 +129,12 @@ class SessionProvider extends ChangeNotifier {
     if (notify) notifyListeners();
   }
 
-  /// User turns off a pending reminder.
   Future<void> disableReminders() async {
     await clearReminderState(notify: false);
     _statusMessage = 'Reminder turned off.';
     notifyListeners();
   }
 
-  /// Initializes notifications and schedules a single T-5 minute alert.
   Future<void> enableReminders() async {
     final session = _session;
     if (session == null || !session.canRemind) return;

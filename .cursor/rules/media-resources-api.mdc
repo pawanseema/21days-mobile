@@ -18,13 +18,14 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 |--------|------|----------------|
 | GET | `/health` | `{ "status": "healthy" }` |
 | GET | `/api/live/sessions` | Next/current session; URLs from `config/live_sessions.json` |
+| GET | `/api/live/recent` | Latest completed livestream per channel within ~72h (≤1 each) |
 | POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
 | POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
 
 ### Live session response (`GET /api/live/sessions`)
 
 YouTube-backed. Prefers an active live stream on configured channels; else the
-soonest upcoming within ~24h. `session` may be `null`.
+soonest upcoming within ~72h. `session` may be `null`.
 
 ```json
 {
@@ -44,6 +45,35 @@ soonest upcoming within ~24h. `session` may be `null`.
     "youtube_thumbnail_url": "https://…",
     "zoom_meeting_url": "https://zoom.us/j/…"
   }
+}
+```
+
+### Recent recordings (`GET /api/live/recent`)
+
+At most one completed livestream per configured channel, ending within
+`recent_within_hours` (default 72).
+
+```json
+{
+  "server_time": "ISO-8601",
+  "within_hours": 72,
+  "items": [
+    {
+      "id": "ended_<videoId>",
+      "status": "ended",
+      "source": "youtube_completed",
+      "video_id": "…",
+      "title": "…",
+      "channel_id": "…",
+      "channel_title": "…",
+      "channel_handle": "@…",
+      "starts_at": "ISO-8601|null",
+      "ends_at": "ISO-8601|null",
+      "published_at": "ISO-8601|null",
+      "youtube_watch_url": "https://www.youtube.com/watch?v=…",
+      "youtube_thumbnail_url": "https://…"
+    }
+  ]
 }
 ```
 

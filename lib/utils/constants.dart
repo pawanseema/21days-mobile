@@ -29,4 +29,7 @@ class AppConstants {
 
   /// Current / next live meditation session (YouTube + Zoom links).
   static const String liveSessionsPath = '/api/live/sessions';
+
+  /// Latest completed livestream per channel (within ~72h).
+  static const String liveRecentPath = '/api/live/recent';
 }
