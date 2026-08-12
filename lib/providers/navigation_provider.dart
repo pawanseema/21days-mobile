@@ -7,8 +7,18 @@ class NavigationProvider extends ChangeNotifier {
   int get index => _index;
 
   void setIndex(int value) {
-    if (value == _index || value < 0 || value > 3) return;
+    if (value < 0 || value > 3) return;
+    if (value == _index) {
+      // Still notify so listeners can react (e.g. reminder deep link refresh).
+      notifyListeners();
+      return;
+    }
     _index = value;
     notifyListeners();
   }
+
+  /// Live tab index.
+  static const int liveTabIndex = 0;
+
+  void openLiveTab() => setIndex(liveTabIndex);
 }

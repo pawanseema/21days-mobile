@@ -6,17 +6,23 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../models/session_model.dart';
 
-/// Schedules local reminders 30, 15, and 1 minute before a live session.
-///
-/// Scaffold only — call [initialize] once at app start, then
-/// [scheduleSessionReminders] when a session is known.
+/// Local reminder 5 minutes before a live session, with tap → Live tab deep link.
 class NotificationService {
   NotificationService({
     FlutterLocalNotificationsPlugin? plugin,
   }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
+  /// Payload that opens the Live tab and refreshes session info.
+  static const String liveDeepLinkPayload = 'navigate:live';
+
+  /// Minutes before [LiveSession.startsAt] to fire the reminder.
+  static const int reminderMinutesBefore = 5;
+
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
+
+  /// Invoked when the user taps a notification (app in foreground/background).
+  void Function(String? payload)? onNotificationOpened;
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'live_session_reminders',
@@ -33,7 +39,6 @@ class NotificationService {
 
     tz_data.initializeTimeZones();
     try {
-      // flutter_timezone 4.x returns the IANA name as a String.
       final timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));
     } catch (e) {
@@ -63,7 +68,24 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-    // TODO: Deep-link into Live tab / join URL when navigation is available.
+    onNotificationOpened?.call(response.payload);
+  }
+
+  /// If the app was launched from a notification tap (killed → opened), return
+  /// that payload once. Call after UI is ready to navigate.
+  Future<String?> takeLaunchPayload() async {
+    if (!_initialized) {
+      await initialize();
+    }
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details!.notificationResponse?.payload;
+  }
+
+  /// Whether [payload] should open the Live tab.
+  static bool isLiveDeepLink(String? payload) {
+    if (payload == null || payload.isEmpty) return true;
+    return payload == liveDeepLinkPayload || payload.startsWith('navigate:live');
   }
 
   /// Request runtime permission (iOS + Android 13+).
@@ -84,10 +106,7 @@ class NotificationService {
     return androidGranted && iosGranted;
   }
 
-  /// Schedules three reminders: T-30, T-15, and T-1 minutes.
-  ///
-  /// Past offsets are skipped. Existing notifications for [session.id] are
-  /// cancelled first so re-scheduling is idempotent.
+  /// Schedules one reminder at T-5 minutes. Skips if that time is already past.
   Future<void> scheduleSessionReminders(LiveSession session) async {
     if (!_initialized) {
       await initialize();
@@ -100,49 +119,49 @@ class NotificationService {
 
     await cancelSessionReminders(session.id);
 
-    const offsets = <Duration>[
-      Duration(minutes: 30),
-      Duration(minutes: 15),
-      Duration(minutes: 1),
-    ];
-
-    for (final offset in offsets) {
-      final when = startsAt.subtract(offset);
-      if (when.isBefore(DateTime.now())) continue;
-
-      final id = _notificationId(session.id, offset.inMinutes);
-      final minutesLabel = offset.inMinutes == 1
-          ? '1 minute'
-          : '${offset.inMinutes} minutes';
-
-      await _plugin.zonedSchedule(
-        id,
-        'Meditation begins soon',
-        '${session.title} starts in $minutesLabel. Join when you are ready.',
-        tz.TZDateTime.from(when, tz.local),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _channel.id,
-            _channel.name,
-            channelDescription: _channel.description,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: session.primaryJoinUrl,
+    final when = startsAt.subtract(
+      const Duration(minutes: reminderMinutesBefore),
+    );
+    if (when.isBefore(DateTime.now())) {
+      throw StateError(
+        'Reminder time is already past (need at least '
+        '$reminderMinutesBefore minutes before start).',
       );
     }
+
+    final id = _notificationId(session.id, reminderMinutesBefore);
+    final title = session.title.trim().isEmpty
+        ? 'Live meditation'
+        : session.title.trim();
+
+    await _plugin.zonedSchedule(
+      id,
+      'Live session starting soon',
+      '$title begins in $reminderMinutesBefore minutes. Tap to open Live.',
+      tz.TZDateTime.from(when, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channel.id,
+          _channel.name,
+          channelDescription: _channel.description,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      payload: liveDeepLinkPayload,
+    );
   }
 
   Future<void> cancelSessionReminders(String sessionId) async {
-    for (final minutes in const [30, 15, 1]) {
+    // Cancel current 5-min id and legacy 30/15/1 offsets from older builds.
+    for (final minutes in const [5, 30, 15, 1]) {
       await _plugin.cancel(_notificationId(sessionId, minutes));
     }
   }

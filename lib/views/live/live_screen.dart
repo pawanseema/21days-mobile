@@ -281,32 +281,34 @@ class LiveScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Enable reminder',
+                      sessionState.remindersScheduled
+                          ? 'Reminder'
+                          : 'Enable Reminder',
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      session.canRemind
-                          ? 'Get gentle alerts 30, 15, and 1 minute before this '
-                              'session starts. Join links appear when the stream '
-                              'goes live.'
-                          : 'This session is scheduled on YouTube, but a start '
-                              'time is not available yet. Pull to refresh later.',
+                      !session.canRemind
+                          ? 'Start time is not available yet. Pull to refresh later.'
+                          : sessionState.remindersScheduled
+                              ? 'Reminder is on for 5 minutes before this session starts.'
+                              : 'Get notified 5 minutes before this session starts.',
                       style: theme.textTheme.bodyMedium,
                     ),
                     if (session.canRemind) ...[
                       const SizedBox(height: 14),
-                      ElevatedButton.icon(
-                        onPressed: sessionState.remindersScheduled
-                            ? null
-                            : sessionState.enableReminders,
-                        icon: const Icon(Icons.notifications_active_outlined),
-                        label: Text(
-                          sessionState.remindersScheduled
-                              ? 'Reminders enabled'
-                              : 'Enable reminder',
+                      if (sessionState.remindersScheduled)
+                        OutlinedButton.icon(
+                          onPressed: sessionState.disableReminders,
+                          icon: const Icon(Icons.notifications_off_outlined),
+                          label: const Text('Disable Reminder'),
+                        )
+                      else
+                        ElevatedButton.icon(
+                          onPressed: sessionState.enableReminders,
+                          icon: const Icon(Icons.notifications_active_outlined),
+                          label: const Text('Enable Reminder'),
                         ),
-                      ),
                     ],
                     if (sessionState.statusMessage != null) ...[
                       const SizedBox(height: 10),

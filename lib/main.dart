@@ -13,6 +13,7 @@ import 'theme/app_theme.dart';
 import 'utils/constants.dart';
 import 'views/auth/login_screen.dart';
 import 'views/home/home_shell.dart';
+import 'widgets/notification_deep_link_binder.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,11 +65,13 @@ class TwentyOneDaysApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => MentorProvider()),
       ],
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        home: const _AuthGate(),
+      child: NotificationDeepLinkBinder(
+        child: MaterialApp(
+          title: AppConstants.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          home: const _AuthGate(),
+        ),
       ),
     );
   }
