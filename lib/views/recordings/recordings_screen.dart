@@ -8,8 +8,22 @@ import '../../theme/app_theme.dart';
 import '../resources/video_player_screen.dart';
 
 /// Recordings tab — latest year playlist sliced into collapsible sessions.
-class RecordingsScreen extends StatelessWidget {
+class RecordingsScreen extends StatefulWidget {
   const RecordingsScreen({super.key});
+
+  @override
+  State<RecordingsScreen> createState() => _RecordingsScreenState();
+}
+
+class _RecordingsScreenState extends State<RecordingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<RecordingsProvider>().ensureLoaded();
+    });
+  }
 
   void _openVideo(
     BuildContext context,
@@ -30,7 +44,7 @@ class RecordingsScreen extends StatelessWidget {
     final state = context.watch<RecordingsProvider>();
     final theme = Theme.of(context);
 
-    if (state.isLoading) {
+    if (state.isLoading || !state.hasAttemptedLoad) {
       return const Center(child: CircularProgressIndicator());
     }
 

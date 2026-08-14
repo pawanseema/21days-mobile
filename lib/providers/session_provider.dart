@@ -49,11 +49,9 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final sessionFuture = _sessionService.fetchNextSession();
-      final recentFuture = _sessionService.fetchRecentRecordings();
-      _session = await sessionFuture;
+      _session = await _sessionService.fetchNextSession();
       try {
-        _recent = await recentFuture;
+        _recent = await _sessionService.fetchRecentRecordings();
       } catch (e) {
         debugPrint('SessionProvider recent fetch failed: $e');
         _recent = const [];

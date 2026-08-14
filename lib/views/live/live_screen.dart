@@ -95,38 +95,9 @@ class LiveScreen extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (sessionState.error != null && sessionState.session == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Unable to load live sessions',
-                style: theme.textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                sessionState.error!,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                onPressed: sessionState.refresh,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final session = sessionState.session;
     final recent = sessionState.recentRecordings;
+    final loadError = sessionState.error;
 
     return RefreshIndicator(
       onRefresh: sessionState.refresh,
@@ -134,6 +105,13 @@ class LiveScreen extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
+          if (loadError != null) ...[
+            _LiveLoadErrorBanner(
+              message: loadError,
+              onRetry: sessionState.refresh,
+            ),
+            const SizedBox(height: 16),
+          ],
           if (session == null)
             _EmptyLiveCard(theme: theme)
           else ...[
@@ -182,6 +160,54 @@ class LiveScreen extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveLoadErrorBanner extends StatelessWidget {
+  const _LiveLoadErrorBanner({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.92),
+        border: Border.all(color: context.colors.mist),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Could not reach live sessions',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: context.colors.ink,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
         ],
       ),
     );

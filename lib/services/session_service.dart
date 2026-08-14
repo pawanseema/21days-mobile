@@ -55,7 +55,7 @@ class SessionService {
             uri,
             headers: const {'Accept': 'application/json'},
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 45));
     } on Exception catch (e) {
       throw SessionException(
         'Cannot reach live API at $uri. '
