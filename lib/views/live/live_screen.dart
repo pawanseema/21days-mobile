@@ -14,7 +14,7 @@ import '../resources/video_player_screen.dart';
 class LiveScreen extends StatelessWidget {
   const LiveScreen({super.key});
 
-  Future<void> _open(BuildContext context, String url) async {
+  Future<void> _openExternal(BuildContext context, String url) async {
     final trimmed = url.trim();
     if (trimmed.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -30,6 +30,32 @@ class LiveScreen extends StatelessWidget {
         );
       }
     }
+  }
+
+  void _openLiveYouTube(BuildContext context, LiveSession session) {
+    if (session.videoId.trim().isEmpty && !session.hasYouTube) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('YouTube link is not available yet.')),
+      );
+      return;
+    }
+    if (session.videoId.trim().isEmpty) {
+      _openExternal(context, session.youtubeLiveUrl);
+      return;
+    }
+    final result = RecordingResult(
+      videoTitle: session.title.isEmpty
+          ? 'Sahaja Yoga meditation'
+          : session.title,
+      sectionTitle: session.channelLabel,
+      videoId: session.videoId,
+      url: session.youtubeLiveUrl,
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => VideoPlayerScreen(result: result),
+      ),
+    );
   }
 
   void _openRecording(BuildContext context, RecentRecording recording) {
@@ -115,7 +141,8 @@ class LiveScreen extends StatelessWidget {
               session: session,
               theme: theme,
               countdown: _countdown(session),
-              onOpen: (url) => _open(context, url),
+              onWatchYouTube: () => _openLiveYouTube(context, session),
+              onJoinZoom: () => _openExternal(context, session.zoomMeetingUrl),
             ),
             if (session.isUpcoming) ...[
               const SizedBox(height: 16),
@@ -208,13 +235,15 @@ class _LiveSessionCard extends StatelessWidget {
     required this.session,
     required this.theme,
     required this.countdown,
-    required this.onOpen,
+    required this.onWatchYouTube,
+    required this.onJoinZoom,
   });
 
   final LiveSession session;
   final ThemeData theme;
   final String countdown;
-  final void Function(String url) onOpen;
+  final VoidCallback onWatchYouTube;
+  final VoidCallback onJoinZoom;
 
   @override
   Widget build(BuildContext context) {
@@ -304,34 +333,35 @@ class _LiveSessionCard extends StatelessWidget {
           if (session.isLiveNow) ...[
             const SizedBox(height: 20),
             Text(
-              'Choose how you would like to join',
+              'Join',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: context.colors.ink,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Watch in the app, or join Zoom for the interactive meeting.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: context.colors.mutedInk,
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _JoinButton(
-                    label: 'Watch on YouTube',
-                    icon: Icons.play_circle_outline,
-                    onPressed: session.hasYouTube
-                        ? () => onOpen(session.youtubeLiveUrl)
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _JoinButton(
-                    label: 'Join Zoom Meeting',
-                    icon: Icons.videocam_outlined,
-                    onPressed: session.hasZoom
-                        ? () => onOpen(session.zoomMeetingUrl)
-                        : null,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 14),
+            _JoinButton(
+              label: 'Watch on YouTube',
+              subtitle: 'Plays in this app',
+              icon: Icons.play_circle_outline,
+              filled: true,
+              onPressed: session.hasYouTube || session.videoId.trim().isNotEmpty
+                  ? onWatchYouTube
+                  : null,
+            ),
+            const SizedBox(height: 10),
+            _JoinButton(
+              label: 'Join Zoom Meeting',
+              subtitle: 'Opens the Zoom app',
+              icon: Icons.videocam_outlined,
+              filled: false,
+              onPressed: session.hasZoom ? onJoinZoom : null,
             ),
           ],
         ],
@@ -511,34 +541,89 @@ class _RecentRecordingCard extends StatelessWidget {
 class _JoinButton extends StatelessWidget {
   const _JoinButton({
     required this.label,
+    required this.subtitle,
     required this.icon,
+    required this.filled,
     required this.onPressed,
   });
 
   final String label;
+  final String subtitle;
   final IconData icon;
+  final bool filled;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.icon(
-      style: FilledButton.styleFrom(
-        backgroundColor: context.colors.ink,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: context.colors.mist,
-        disabledForegroundColor: context.colors.mutedInk,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+    final colors = context.colors;
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: filled
+                        ? Colors.white.withValues(alpha: 0.85)
+                        : colors.mutedInk,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            filled ? Icons.chevron_right : Icons.open_in_new,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+
+    if (filled) {
+      return FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: colors.ink,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: colors.mist,
+          disabledForegroundColor: colors.mutedInk,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        onPressed: onPressed,
+        child: content,
+      );
+    }
+
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: colors.ink,
+        disabledForegroundColor: colors.mutedInk,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        side: BorderSide(color: colors.ink, width: 1.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
       ),
       onPressed: onPressed,
-      icon: Icon(icon, size: 20),
-      label: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-      ),
+      child: content,
     );
   }
 }
