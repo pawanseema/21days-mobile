@@ -19,6 +19,7 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 | GET | `/health` | `{ "status": "healthy" }` |
 | GET | `/api/live/sessions` | Next/current session; URLs from `config/live_sessions.json` |
 | GET | `/api/live/recent` | Latest completed livestream per channel within ~72h (≤1 each) |
+| GET | `/api/recordings` | Latest year playlist sliced into sessions (oldest-first) |
 | POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
 | POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
 
@@ -79,6 +80,38 @@ At most one completed livestream per configured channel, ending within
 
 Edit channels / Zoom in backend `config/live_sessions.json` — not hardcoded in Flutter.
 
+### Year recordings (`GET /api/recordings`)
+
+Latest `year` in `config/year_playlists.json`. Playlist items are sorted oldest-first
+and sliced by each session’s `video_count` (split sessions like 3A+3B share 21).
+
+```json
+{
+  "year": 2026,
+  "title": "21 Days 2026",
+  "playlist_id": "PLxxxx",
+  "sessions": [
+    {
+      "id": "2026-s1",
+      "label": "Session 1",
+      "video_count": 21,
+      "videos": [
+        {
+          "video_id": "…",
+          "title": "…",
+          "published_at": "ISO-8601",
+          "youtube_watch_url": "https://www.youtube.com/watch?v=…",
+          "youtube_thumbnail_url": "https://…"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Map in `YearRecordings` / `RecordingSession` / `SessionVideo`. Session video tap
+opens `VideoPlayerScreen` via `RecordingResult`.
+
 ### Search result card (`POST /search` → `results[]`)
 
 Fields: `video_title`, `section_title`, `video_id`, `timestamp`, `summary`, `url`, `chakra`, `quote`, `hashtags`, `published_at`, `confidence`, optional `section_duration_seconds`, `chroma_id`.
@@ -87,7 +120,7 @@ Fields: `video_title`, `section_title`, `video_id`, `timestamp`, `summary`, `url
 
 Fields: `resource_id`, `title`, `description`, `topic`, `tags` (array), `download_url`, `file_type`, `created_at`, `confidence`.
 
-Map these in `RecordingResult` / `HandoutResult` / `LiveSession` — keep snake_case JSON ↔ Dart models in sync.
+Map these in `RecordingResult` / `HandoutResult` / `LiveSession` / `YearRecordings` — keep snake_case JSON ↔ Dart models in sync.
 
 ## Resources UI conventions
 

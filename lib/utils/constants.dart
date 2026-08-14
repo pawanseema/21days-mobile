@@ -32,4 +32,7 @@ class AppConstants {
 
   /// Latest completed livestream per channel (within ~72h).
   static const String liveRecentPath = '/api/live/recent';
+
+  /// Latest year playlist sliced into configured sessions.
+  static const String recordingsPath = '/api/recordings';
 }

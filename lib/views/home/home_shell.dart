@@ -7,7 +7,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/constants.dart';
 import '../account/account_screen.dart';
 import '../live/live_screen.dart';
-import '../mentor/mentor_screen.dart';
+import '../recordings/recordings_screen.dart';
 import '../resources/resources_screen.dart';
 import '../wisdom/wisdom_screen.dart';
 
@@ -18,7 +18,7 @@ class HomeShell extends StatelessWidget {
   static const _pages = <Widget>[
     LiveScreen(),
     ResourcesScreen(),
-    MentorScreen(),
+    RecordingsScreen(),
     WisdomScreen(),
   ];
 
@@ -32,7 +32,7 @@ class HomeShell extends StatelessWidget {
         title: Text(
           nav.index == 0
               ? AppConstants.appName
-              : const ['Live', 'Resources', 'Mentor', 'Wisdom'][nav.index],
+              : const ['Live', 'Resources', 'Recordings', 'Wisdom'][nav.index],
         ),
         actions: [
           if (user != null)
@@ -84,9 +84,9 @@ class HomeShell extends StatelessWidget {
             label: 'Resources',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_outline),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Mentor',
+            icon: Icon(Icons.videocam_outlined),
+            activeIcon: Icon(Icons.videocam),
+            label: 'Recordings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.auto_awesome_outlined),

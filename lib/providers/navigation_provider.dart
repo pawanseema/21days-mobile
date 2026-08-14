@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Bottom-nav tab index: Live, Resources, Mentor, Wisdom.
+/// Bottom-nav tab index: Live, Resources, Recordings, Wisdom.
 class NavigationProvider extends ChangeNotifier {
   int _index = 0;
 
