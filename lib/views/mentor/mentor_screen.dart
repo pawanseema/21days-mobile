@@ -36,17 +36,17 @@ class MentorScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.mist),
+              border: Border.all(color: context.colors.mist),
             ),
             child: Column(
               children: [
                 CircleAvatar(
                   radius: 42,
-                  backgroundColor: AppColors.mist,
+                  backgroundColor: context.colors.mist,
                   child: Text(
                     mentor.name.characters.first.toUpperCase(),
                     style: theme.textTheme.headlineMedium?.copyWith(
-                      color: AppColors.deepTeal,
+                      color: context.colors.deepTeal,
                     ),
                   ),
                 ),
@@ -68,10 +68,10 @@ class MentorScreen extends StatelessWidget {
                         .map(
                           (s) => Chip(
                             label: Text(s),
-                            backgroundColor: AppColors.apricotMist,
+                            backgroundColor: context.colors.apricotMist,
                             side: BorderSide.none,
                             labelStyle: theme.textTheme.labelMedium?.copyWith(
-                              color: AppColors.warmOrange,
+                              color: context.colors.warmOrange,
                             ),
                           ),
                         )
@@ -83,7 +83,7 @@ class MentorScreen extends StatelessWidget {
                   Text(
                     mentor.email!,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.deepTeal,
+                      color: context.colors.deepTeal,
                     ),
                   ),
                 ],
@@ -94,9 +94,9 @@ class MentorScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: AppColors.apricotMist.withValues(alpha: 0.55),
+              color: context.colors.apricotMist.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.mist),
+              border: Border.all(color: context.colors.mist),
             ),
             child: Text(
               state.requestPending
@@ -131,7 +131,7 @@ class MentorScreen extends StatelessWidget {
             state.message!,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.deepTeal,
+              color: context.colors.deepTeal,
             ),
           ),
         ],

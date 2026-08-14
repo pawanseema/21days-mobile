@@ -125,13 +125,13 @@ class LiveScreen extends StatelessWidget {
           const SizedBox(height: 28),
           Text(
             'Recent sessions',
-            style: theme.textTheme.titleLarge?.copyWith(color: AppColors.ink),
+            style: theme.textTheme.titleLarge?.copyWith(color: context.colors.ink),
           ),
           const SizedBox(height: 6),
           Text(
             'Latest recording from each channel (last 72 hours). Tap to watch.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.mutedInk,
+              color: context.colors.mutedInk,
             ),
           ),
           const SizedBox(height: 14),
@@ -141,7 +141,7 @@ class LiveScreen extends StatelessWidget {
               child: Text(
                 'No recent recordings in the last 72 hours.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.mutedInk,
+                  color: context.colors.mutedInk,
                 ),
               ),
             )
@@ -181,20 +181,20 @@ class _EmptyLiveCard extends StatelessWidget {
           Icon(
             Icons.self_improvement_outlined,
             size: 48,
-            color: AppColors.ink.withValues(alpha: 0.75),
+            color: context.colors.ink.withValues(alpha: 0.75),
           ),
           const SizedBox(height: 14),
           Text(
             'No live or upcoming session right now',
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(color: AppColors.ink),
+            style: theme.textTheme.titleLarge?.copyWith(color: context.colors.ink),
           ),
           const SizedBox(height: 8),
           Text(
             'We look ahead 72 hours for the next stream. Pull to refresh.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.mutedInk,
+              color: context.colors.mutedInk,
             ),
           ),
         ],
@@ -233,7 +233,7 @@ class _LiveSessionCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withValues(alpha: 0.08),
+            color: context.colors.ink.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -263,13 +263,13 @@ class _LiveSessionCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: AppColors.bannerYellow,
+                color: context.colors.bannerYellow,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Upcoming',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.ink,
+                  color: context.colors.ink,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -279,13 +279,13 @@ class _LiveSessionCard extends StatelessWidget {
           Text(
             eyebrow,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.mutedInk,
+              color: context.colors.mutedInk,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             session.title.isEmpty ? 'Sahaja Yoga meditation' : session.title,
-            style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.ink),
+            style: theme.textTheme.headlineSmall?.copyWith(color: context.colors.ink),
           ),
           if (session.channelLabel.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -306,7 +306,7 @@ class _LiveSessionCard extends StatelessWidget {
             Text(
               'Choose how you would like to join',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.mutedInk,
+                color: context.colors.mutedInk,
               ),
             ),
             const SizedBox(height: 12),
@@ -391,7 +391,7 @@ class _ReminderCard extends StatelessWidget {
               Text(
                 sessionState.statusMessage!,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.deepTeal,
+                  color: context.colors.deepTeal,
                 ),
               ),
             ],
@@ -428,7 +428,7 @@ class _RecentRecordingCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.mist),
+            border: Border.all(color: context.colors.mist),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -444,10 +444,10 @@ class _RecentRecordingCard extends StatelessWidget {
                         thumb,
                         fit: BoxFit.cover,
                         errorBuilder: (_, error, stackTrace) =>
-                            const ColoredBox(color: AppColors.mist),
+                            ColoredBox(color: context.colors.mist),
                       )
                     else
-                      const ColoredBox(color: AppColors.mist),
+                      ColoredBox(color: context.colors.mist),
                     Align(
                       alignment: Alignment.center,
                       child: Container(
@@ -474,7 +474,7 @@ class _RecentRecordingCard extends StatelessWidget {
                     Text(
                       recording.title,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.ink,
+                        color: context.colors.ink,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -484,7 +484,7 @@ class _RecentRecordingCard extends StatelessWidget {
                       Text(
                         recording.channelLabel,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.mutedInk,
+                          color: context.colors.mutedInk,
                         ),
                       ),
                     ],
@@ -493,7 +493,7 @@ class _RecentRecordingCard extends StatelessWidget {
                       Text(
                         whenLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.mutedInk,
+                          color: context.colors.mutedInk,
                         ),
                       ),
                     ],
@@ -523,10 +523,10 @@ class _JoinButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.ink,
+        backgroundColor: context.colors.ink,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: AppColors.mist,
-        disabledForegroundColor: AppColors.mutedInk,
+        disabledBackgroundColor: context.colors.mist,
+        disabledForegroundColor: context.colors.mutedInk,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -553,13 +553,13 @@ class _MetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.mutedInk),
+        Icon(icon, size: 18, color: context.colors.mutedInk),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.ink,
+                  color: context.colors.ink,
                 ),
           ),
         ),

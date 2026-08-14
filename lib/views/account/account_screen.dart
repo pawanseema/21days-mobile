@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
+import '../../providers/theme_controller.dart';
+import '../../theme/app_palette.dart';
 
-/// Account details + App Store–required delete-account path.
+/// Account details, appearance picker, and App Store delete-account path.
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
@@ -51,11 +52,13 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final themes = context.watch<ThemeController>();
     final user = auth.user;
     final theme = Theme.of(context);
+    final colors = context.colors;
 
     return Scaffold(
-      backgroundColor: AppColors.pageBlue,
+      backgroundColor: colors.pageBackground,
       appBar: AppBar(
         title: const Text('Account'),
       ),
@@ -85,6 +88,39 @@ class AccountScreen extends StatelessWidget {
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Appearance', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Try a color scheme. You can switch back anytime.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ...themes.presets.map((palette) {
+                    final selected = palette.id == themes.paletteId;
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        selected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: colors.ink,
+                      ),
+                      title: Text(palette.label),
+                      trailing: _PaletteSwatches(palette: palette),
+                      onTap: () => themes.setPaletteId(palette.id),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -133,6 +169,44 @@ class AccountScreen extends StatelessWidget {
             const Center(child: CircularProgressIndicator()),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _PaletteSwatches extends StatelessWidget {
+  const _PaletteSwatches({required this.palette});
+
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _Swatch(color: palette.pageBackground),
+        _Swatch(color: palette.chromeBackground),
+        _Swatch(color: palette.ink),
+      ],
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16,
+      height: 16,
+      margin: const EdgeInsets.only(left: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.black12),
       ),
     );
   }

@@ -28,7 +28,7 @@ class HandoutResultCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.mist),
+            border: Border.all(color: context.colors.mist),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,10 +43,10 @@ class HandoutResultCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
+                  Icon(
                     Icons.open_in_new,
                     size: 18,
-                    color: AppColors.mutedInk,
+                    color: context.colors.mutedInk,
                   ),
                 ],
               ),
@@ -82,7 +82,7 @@ class HandoutResultCard extends StatelessWidget {
               Text(
                 'Tap to open →',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.deepTeal,
+                  color: context.colors.deepTeal,
                 ),
               ),
             ],
@@ -104,13 +104,13 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: accent ? AppColors.apricotMist : AppColors.mist,
+        color: accent ? context.colors.apricotMist : context.colors.mist,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: accent ? AppColors.warmOrange : AppColors.ink,
+              color: accent ? context.colors.warmOrange : context.colors.ink,
             ),
       ),
     );

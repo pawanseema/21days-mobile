@@ -31,7 +31,7 @@ class VideoResultCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.mist),
+            border: Border.all(color: context.colors.mist),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -47,10 +47,10 @@ class VideoResultCard extends StatelessWidget {
                         result.thumbnailUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
-                            const ColoredBox(color: AppColors.mist),
+                            ColoredBox(color: context.colors.mist),
                       )
                     else
-                      const ColoredBox(color: AppColors.mist),
+                      ColoredBox(color: context.colors.mist),
                     Container(
                       color: Colors.black.withValues(alpha: 0.22),
                       alignment: Alignment.center,
@@ -79,7 +79,7 @@ class VideoResultCard extends StatelessWidget {
                       Text(
                         result.sectionTitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.deepTeal,
+                          color: context.colors.deepTeal,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -97,7 +97,7 @@ class VideoResultCard extends StatelessWidget {
                       Text(
                         result.durationLabel!,
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.mutedInk,
+                          color: context.colors.mutedInk,
                         ),
                       ),
                     ],
@@ -122,7 +122,7 @@ class VideoResultCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontStyle: FontStyle.italic,
-                          color: AppColors.mutedInk,
+                          color: context.colors.mutedInk,
                         ),
                       ),
                     ],
@@ -148,13 +148,13 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: accent ? AppColors.apricotMist : AppColors.mist,
+        color: accent ? context.colors.apricotMist : context.colors.mist,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: accent ? AppColors.warmOrange : AppColors.ink,
+              color: accent ? context.colors.warmOrange : context.colors.ink,
             ),
       ),
     );

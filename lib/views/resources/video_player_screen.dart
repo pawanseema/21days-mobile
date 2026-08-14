@@ -73,7 +73,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             Text(
               result.videoTitle,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.deepTeal,
+                color: context.colors.deepTeal,
               ),
             ),
           ],
@@ -85,7 +85,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 if (result.durationLabel != null) result.durationLabel,
               ].join(' · '),
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.mutedInk,
+                color: context.colors.mutedInk,
               ),
             ),
           ],
@@ -103,7 +103,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               '"${result.quote}"',
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontStyle: FontStyle.italic,
-                color: AppColors.mutedInk,
+                color: context.colors.mutedInk,
               ),
             ),
           ],
@@ -120,7 +120,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     if (kIsWeb) {
       final embed = buildYoutubeEmbed(result);
       return Scaffold(
-        backgroundColor: AppColors.pageBlue,
+        backgroundColor: context.colors.pageBlue,
         appBar: AppBar(
           title: Text(
             title.isEmpty ? 'Video' : title,
@@ -154,15 +154,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       player: YoutubePlayer(
         controller: controller,
         showVideoProgressIndicator: true,
-        progressIndicatorColor: AppColors.warmOrange,
-        progressColors: const ProgressBarColors(
-          playedColor: AppColors.warmOrange,
-          handleColor: AppColors.deepTeal,
+        progressIndicatorColor: context.colors.warmOrange,
+        progressColors: ProgressBarColors(
+          playedColor: context.colors.warmOrange,
+          handleColor: context.colors.deepTeal,
         ),
       ),
       builder: (context, player) {
         return Scaffold(
-          backgroundColor: AppColors.pageBlue,
+          backgroundColor: context.colors.pageBlue,
           appBar: AppBar(
             title: Text(
               title.isEmpty ? 'Video' : title,
@@ -189,13 +189,13 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.apricotMist,
+        color: context.colors.apricotMist,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.warmOrange,
+              color: context.colors.warmOrange,
             ),
       ),
     );

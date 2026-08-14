@@ -6,6 +6,7 @@ import 'providers/mentor_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/session_provider.dart';
+import 'providers/theme_controller.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap.dart';
 import 'services/notification_service.dart';
@@ -27,10 +28,13 @@ Future<void> main() async {
   }
 
   final firebaseReady = await bootstrapFirebase();
+  final themeController = ThemeController();
+  await themeController.load();
 
   runApp(
     TwentyOneDaysApp(
       notificationService: notifications,
+      themeController: themeController,
       useMockAuth: !firebaseReady,
     ),
   );
@@ -41,16 +45,19 @@ class TwentyOneDaysApp extends StatelessWidget {
   const TwentyOneDaysApp({
     super.key,
     required this.notificationService,
+    required this.themeController,
     this.useMockAuth = true,
   });
 
   final NotificationService notificationService;
+  final ThemeController themeController;
   final bool useMockAuth;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: themeController),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(
             authService: AuthService(useMockBackend: useMockAuth),
@@ -66,11 +73,15 @@ class TwentyOneDaysApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MentorProvider()),
       ],
       child: NotificationDeepLinkBinder(
-        child: MaterialApp(
-          title: AppConstants.appName,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          home: const _AuthGate(),
+        child: Consumer<ThemeController>(
+          builder: (context, themes, _) {
+            return MaterialApp(
+              title: AppConstants.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.fromPalette(themes.palette),
+              home: const _AuthGate(),
+            );
+          },
         ),
       ),
     );

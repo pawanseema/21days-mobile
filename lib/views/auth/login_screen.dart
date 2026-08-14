@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBlue,
+      backgroundColor: context.colors.pageBlue,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.bannerYellow,
+                        color: context.colors.bannerYellow,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Let's Meditate For 21 Days",
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              color: AppColors.ink,
+                              color: context.colors.chromeForeground,
                               fontWeight: FontWeight.w700,
                               height: 1.1,
                               fontSize: 26,
@@ -104,7 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Your Meditation Journey',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: AppColors.ink.withValues(alpha: 0.85),
+                              color: context.colors.chromeForeground
+                                  .withValues(alpha: 0.85),
                               fontWeight: FontWeight.w600,
                               height: 1.15,
                               fontSize: 16,
@@ -144,14 +145,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'Welcome back',
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              color: AppColors.ink,
+                              color: context.colors.ink,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             'Sign in to join live sessions and continue your journey.',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.mutedInk,
+                              color: context.colors.mutedInk,
                             ),
                           ),
                           const SizedBox(height: 22),

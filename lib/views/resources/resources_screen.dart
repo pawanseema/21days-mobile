@@ -105,9 +105,9 @@ class _ResourcesScreenState extends State<ResourcesScreen>
               const SizedBox(height: 12),
               TabBar(
                 controller: _tabs,
-                labelColor: AppColors.deepTeal,
-                unselectedLabelColor: AppColors.mutedInk,
-                indicatorColor: AppColors.deepTeal,
+                labelColor: context.colors.deepTeal,
+                unselectedLabelColor: context.colors.mutedInk,
+                indicatorColor: context.colors.deepTeal,
                 tabs: const [
                   Tab(text: 'Videos'),
                   Tab(text: 'Handouts'),
@@ -184,7 +184,7 @@ class _RelatedBanner extends StatelessWidget {
         : 'this clip';
 
     return Material(
-      color: AppColors.apricotMist,
+      color: context.colors.apricotMist,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         child: Row(
@@ -199,7 +199,7 @@ class _RelatedBanner extends StatelessWidget {
                       text: title,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.deepTeal,
+                        color: context.colors.deepTeal,
                       ),
                     ),
                   ],
@@ -276,7 +276,7 @@ class _ResultsPane extends StatelessWidget {
             search.emptyPrompt,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: AppColors.mutedInk,
+              color: context.colors.mutedInk,
             ),
           ),
         ),

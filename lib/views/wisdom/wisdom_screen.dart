@@ -46,7 +46,7 @@ class WisdomScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.mist),
+                  border: Border.all(color: context.colors.mist),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,8 +56,8 @@ class WisdomScreen extends StatelessWidget {
                       height: 56,
                       decoration: BoxDecoration(
                         color: index.isEven
-                            ? AppColors.softTeal
-                            : AppColors.softOrange,
+                            ? context.colors.softTeal
+                            : context.colors.softOrange,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -70,7 +70,7 @@ class WisdomScreen extends StatelessWidget {
                             Text(
                               topic.accentLabel!.toUpperCase(),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: AppColors.warmOrange,
+                                color: context.colors.warmOrange,
                                 letterSpacing: 1.1,
                               ),
                             ),
@@ -81,9 +81,9 @@ class WisdomScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
-                      color: AppColors.mutedInk,
+                      color: context.colors.mutedInk,
                     ),
                   ],
                 ),
@@ -122,7 +122,7 @@ class WisdomScreen extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.mist,
+                      color: context.colors.mist,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

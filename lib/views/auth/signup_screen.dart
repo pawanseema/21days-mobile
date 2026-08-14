@@ -65,7 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBlue,
+      backgroundColor: context.colors.pageBlue,
       appBar: AppBar(
         title: const Text('Create account'),
       ),
