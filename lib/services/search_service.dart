@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/handout_model.dart';
 import '../models/recording_model.dart';
 import '../models/ui_config_model.dart';
+import '../models/video_chapter.dart';
 import '../utils/constants.dart';
 
 /// Client for the 21days-media-resources semantic search APIs.
@@ -12,6 +13,7 @@ import '../utils/constants.dart';
 /// - Videos: `POST /search`
 /// - Handouts: `POST /api/resources/search`
 /// - Related: `POST /api/videos/related`
+/// - Chapters: `GET /api/videos/<id>/chapters`
 class SearchService {
   SearchService({
     http.Client? client,
@@ -115,6 +117,38 @@ class SearchService {
       label: 'related videos',
     );
     return RelatedVideosResponse.fromJson(body, fallbackSeed: seed);
+  }
+
+  /// GET `/api/videos/<id>/chapters` — Chroma timestamp sections (may be empty).
+  Future<List<VideoChapter>> fetchVideoChapters(String videoId) async {
+    final trimmed = videoId.trim();
+    if (trimmed.isEmpty) return const [];
+
+    final uri = Uri.parse(
+      '$baseUrl${AppConstants.videoChaptersPath(trimmed)}',
+    );
+    late final http.Response response;
+    try {
+      response = await _client
+          .get(uri, headers: const {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 30));
+    } on Exception {
+      return const [];
+    }
+
+    if (response.statusCode != 200) return const [];
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) return const [];
+    if (decoded.containsKey('error')) return const [];
+
+    final raw = decoded['chapters'];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(VideoChapter.fromJson)
+        .where((c) => c.timestamp.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<Map<String, dynamic>> _postJson({

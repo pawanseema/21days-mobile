@@ -19,8 +19,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('21 Days'), findsWidgets);
-    expect(find.text('Sign in with Email'), findsOneWidget);
+    expect(find.text('Continue as Guest'), findsOneWidget);
     expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('Sign in with Email'), findsOneWidget);
+    expect(find.text('Create account with Email'), findsOneWidget);
   });
 }
 

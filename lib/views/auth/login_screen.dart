@@ -7,6 +7,9 @@ import '../../theme/app_theme.dart';
 import 'signup_screen.dart';
 
 /// Login entry styled to match the media-resources search.html hero.
+///
+/// Guest-first: Continue as Guest is the primary CTA; account options stay on
+/// the same screen below.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -45,6 +48,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _google() async {
     final auth = context.read<AuthProvider>();
     final ok = await auth.signInWithGoogle();
+    if (!mounted) return;
+    if (!ok && auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+    }
+  }
+
+  Future<void> _guest() async {
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.continueAsGuest();
     if (!mounted) return;
     if (!ok && auth.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,19 +157,46 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Welcome back',
+                            'Start your meditation journey',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               color: context.colors.ink,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Sign in to join live sessions and continue your journey.',
+                            'Begin now as a guest, or sign in to keep your account.',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: context.colors.mutedInk,
                             ),
                           ),
                           const SizedBox(height: 22),
+                          ElevatedButton(
+                            onPressed: auth.isBusy ? null : _guest,
+                            child: const Text('Continue as Guest'),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Expanded(child: Divider()),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: Text(
+                                  'or',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ),
+                              const Expanded(child: Divider()),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          OutlinedButton.icon(
+                            onPressed: auth.isBusy ? null : _google,
+                            icon: const Icon(Icons.g_mobiledata, size: 28),
+                            label: const Text('Continue with Google'),
+                          ),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -230,33 +271,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   },
                             child: const Text('Create account with Email'),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              const Expanded(child: Divider()),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                child: Text(
-                                  'or',
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              ),
-                              const Expanded(child: Divider()),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          OutlinedButton.icon(
-                            onPressed: auth.isBusy ? null : _google,
-                            icon: const Icon(Icons.g_mobiledata, size: 28),
-                            label: const Text('Continue with Google'),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: auth.isBusy ? null : _guest,
-                            child: const Text('Continue as guest'),
-                          ),
                         ],
                       ),
                     ),
@@ -268,16 +282,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _guest() async {
-    final auth = context.read<AuthProvider>();
-    final ok = await auth.continueAsGuest();
-    if (!mounted) return;
-    if (!ok && auth.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error!)),
-      );
-    }
   }
 }

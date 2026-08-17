@@ -35,4 +35,8 @@ class AppConstants {
 
   /// Latest year playlist sliced into configured sessions.
   static const String recordingsPath = '/api/recordings';
+
+  /// Chroma timestamp chapters for one video.
+  static String videoChaptersPath(String videoId) =>
+      '/api/videos/${Uri.encodeComponent(videoId)}/chapters';
 }

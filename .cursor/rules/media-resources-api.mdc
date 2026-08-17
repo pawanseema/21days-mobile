@@ -20,6 +20,7 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 | GET | `/api/live/sessions` | Next/current session; URLs from `config/live_sessions.json` |
 | GET | `/api/live/recent` | Latest completed livestream per channel within ~72h (≤1 each) |
 | GET | `/api/recordings` | Latest year playlist sliced into sessions (oldest-first) |
+| GET | `/api/videos/<video_id>/chapters` | Chroma timestamp chapters (empty if not ingested) |
 | POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
 | POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
 
@@ -111,6 +112,26 @@ and sliced by each session’s `video_count` (split sessions like 3A+3B share 21
 
 Map in `YearRecordings` / `RecordingSession` / `SessionVideo`. Session video tap
 opens `VideoPlayerScreen` via `RecordingResult`.
+
+### Video chapters (`GET /api/videos/<video_id>/chapters`)
+
+Chroma `timestamp_section` rows for one video, sorted oldest-first. Empty
+`chapters` when the video is not ingested (no YouTube call).
+
+```json
+{
+  "video_id": "…",
+  "chapters": [
+    {
+      "timestamp": "4:12",
+      "section_title": "Meditation",
+      "start_seconds": 252
+    }
+  ]
+}
+```
+
+Map in `VideoChapter`. Player shows title+time rows; tap seeks in-app.
 
 ### Search result card (`POST /search` → `results[]`)
 
