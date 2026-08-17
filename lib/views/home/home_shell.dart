@@ -32,7 +32,7 @@ class HomeShell extends StatelessWidget {
         title: Text(
           nav.index == 0
               ? AppConstants.appName
-              : const ['Live', 'Resources', 'Recordings', 'Wisdom'][nav.index],
+              : const ['Live', 'Explore', 'Recordings', 'Wisdom'][nav.index],
         ),
         actions: [
           if (user != null)
@@ -79,9 +79,9 @@ class HomeShell extends StatelessWidget {
             label: 'Live',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.video_library_outlined),
-            activeIcon: Icon(Icons.video_library),
-            label: 'Resources',
+            icon: Icon(Icons.explore_outlined),
+            activeIcon: Icon(Icons.explore),
+            label: 'Explore',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.videocam_outlined),

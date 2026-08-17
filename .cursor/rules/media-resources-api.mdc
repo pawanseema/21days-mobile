@@ -143,7 +143,7 @@ Fields: `resource_id`, `title`, `description`, `topic`, `tags` (array), `downloa
 
 Map these in `RecordingResult` / `HandoutResult` / `LiveSession` / `YearRecordings` — keep snake_case JSON ↔ Dart models in sync.
 
-## Resources UI conventions
+## Explore tab UI conventions
 
 - Tabs: **Videos** → `/search`, **Handouts** → `/api/resources/search`
 - Video card tap → in-app YouTube player at `timestamp` (web may open watch URL)

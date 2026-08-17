@@ -10,7 +10,7 @@ import 'handout_result_card.dart';
 import 'video_player_screen.dart';
 import 'video_result_card.dart';
 
-/// Resources tab — Videos (`/search`) and Handouts (`/api/resources/search`).
+/// Explore tab — Videos (`/search`) and Handouts (`/api/resources/search`).
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
 
@@ -18,35 +18,51 @@ class ResourcesScreen extends StatefulWidget {
   State<ResourcesScreen> createState() => _ResourcesScreenState();
 }
 
-class _ResourcesScreenState extends State<ResourcesScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
+class _ResourcesScreenState extends State<ResourcesScreen> {
   final _controller = TextEditingController();
+  bool _draftEmpty = true;
 
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
-    _tabs.addListener(_onTabChanged);
+    _controller.addListener(_onDraftChanged);
   }
 
-  void _onTabChanged() {
-    if (_tabs.indexIsChanging) return;
-    final next =
-        _tabs.index == 0 ? ResourceTab.videos : ResourceTab.handouts;
-    final search = context.read<SearchProvider>();
-    if (search.tab != next) {
-      _controller.clear();
-      search.setTab(next);
+  void _onDraftChanged() {
+    final empty = _controller.text.trim().isEmpty;
+    if (empty != _draftEmpty) {
+      setState(() => _draftEmpty = empty);
     }
   }
 
   @override
   void dispose() {
-    _tabs.removeListener(_onTabChanged);
-    _tabs.dispose();
+    _controller.removeListener(_onDraftChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _selectTab(ResourceTab tab) {
+    final search = context.read<SearchProvider>();
+    if (search.tab == tab) return;
+    _controller.clear();
+    search.setTab(tab);
+    setState(() => _draftEmpty = true);
+  }
+
+  void _runSearch(String query) {
+    context.read<SearchProvider>().search(query);
+  }
+
+  void _applyExample(String text) {
+    _controller.text = text;
+    _controller.selection = TextSelection.collapsed(offset: text.length);
+    _runSearch(text);
+  }
+
+  void _clearSearch() {
+    _controller.clear();
+    context.read<SearchProvider>().clear();
   }
 
   Future<void> _openVideo(RecordingResult item) async {
@@ -85,66 +101,51 @@ class _ResourcesScreenState extends State<ResourcesScreen>
   @override
   Widget build(BuildContext context) {
     final search = context.watch<SearchProvider>();
-    final theme = Theme.of(context);
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Resources', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 4),
-              Text(
-                search.tab == ResourceTab.videos
-                    ? 'Semantic search over meditation video sections'
-                    : 'Semantic search over practice handouts',
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              TabBar(
-                controller: _tabs,
-                labelColor: context.colors.deepTeal,
-                unselectedLabelColor: context.colors.mutedInk,
-                indicatorColor: context.colors.deepTeal,
-                tabs: const [
-                  Tab(text: 'Videos'),
-                  Tab(text: 'Handouts'),
-                ],
+              _ExploreModeToggle(
+                tab: search.tab,
+                onSelect: _selectTab,
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _controller,
                 textInputAction: TextInputAction.search,
-                onSubmitted: search.search,
+                onSubmitted: _runSearch,
                 decoration: InputDecoration(
                   hintText: search.searchHint,
                   prefixIcon: const Icon(Icons.search),
-                  suffixIcon: search.hasQuery
+                  suffixIcon: !_draftEmpty
                       ? IconButton(
-                          onPressed: () {
-                            _controller.clear();
-                            search.clear();
-                          },
+                          onPressed: _clearSearch,
                           icon: const Icon(Icons.clear),
                         )
                       : null,
                 ),
               ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: search.isLoading
-                      ? null
-                      : () => search.search(_controller.text),
-                  child: Text(
-                    search.isLoading ? 'Searching…' : 'Search',
-                  ),
+              if (_draftEmpty &&
+                  !search.hasQuery &&
+                  !search.relatedViewActive) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final prompt in search.examplePrompts)
+                      _ExampleChip(
+                        label: prompt,
+                        onTap: () => _applyExample(prompt),
+                      ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -166,6 +167,121 @@ class _ResourcesScreenState extends State<ResourcesScreen>
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ExploreModeToggle extends StatelessWidget {
+  const _ExploreModeToggle({
+    required this.tab,
+    required this.onSelect,
+  });
+
+  final ResourceTab tab;
+  final ValueChanged<ResourceTab> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.colors.mist),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ModeButton(
+              label: 'Videos',
+              selected: tab == ResourceTab.videos,
+              onTap: () => onSelect(ResourceTab.videos),
+            ),
+          ),
+          Expanded(
+            child: _ModeButton(
+              label: 'Handouts',
+              selected: tab == ResourceTab.handouts,
+              onTap: () => onSelect(ResourceTab.handouts),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  const _ModeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: selected ? context.colors.ink : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: selected ? Colors.white : context.colors.ink,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExampleChip extends StatelessWidget {
+  const _ExampleChip({
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: const Color(0xFFF4F7FA),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: context.colors.mist),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: context.colors.ink,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -269,18 +385,7 @@ class _ResultsPane extends StatelessWidget {
     }
 
     if (!search.hasQuery && !search.relatedViewActive) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            search.emptyPrompt,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: context.colors.mutedInk,
-            ),
-          ),
-        ),
-      );
+      return const SizedBox.expand();
     }
 
     if (search.tab == ResourceTab.videos) {

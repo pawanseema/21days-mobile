@@ -14,7 +14,7 @@ class _SearchSnapshot {
   final List<RecordingResult> results;
 }
 
-/// Drives Resources: Videos / Handouts search + more-like-this for videos.
+/// Drives Explore: Videos / Handouts search + more-like-this for videos.
 class SearchProvider extends ChangeNotifier {
   SearchProvider({SearchService? searchService})
       : _searchService = searchService ?? SearchService() {
@@ -63,8 +63,27 @@ class SearchProvider extends ChangeNotifier {
       ? 'Try searching for a topic from your recent sessions.'
       : 'Search for affirmations, chakras, or practice guides.';
 
+  /// Starter queries matching media-resources `search.html` example chips.
+  List<String> get examplePrompts => _tab == ResourceTab.videos
+      ? const [
+          'What is Sahaja Yoga Meditation?',
+          'Heart chakra meditation',
+          'Experience the silence within',
+          "Founder's talk on Innocence",
+          'Footsoak with Wendy',
+          'Piano music for meditation by Sia',
+        ]
+      : const [
+          'Beginner meditation handout',
+          'Chakra overview',
+          'Daily meditation practice guide',
+          'Affirmations for meditation',
+          'How to raise Kundalini',
+          'Online meditation classes',
+        ];
+
   String get loadingMessage {
-    if (_tab == ResourceTab.handouts) return 'Searching resources…';
+    if (_tab == ResourceTab.handouts) return 'Searching handouts…';
     if (_findingRelated) return 'Finding similar clips…';
     return 'Searching for relevant videos…';
   }
