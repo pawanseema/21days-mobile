@@ -64,7 +64,7 @@ class LiveScreen extends StatelessWidget {
       sectionTitle: recording.channelLabel,
       videoId: recording.videoId,
       url: recording.youtubeWatchUrl,
-      publishedAt: (recording.endsAt ?? recording.publishedAt)?.toIso8601String() ??
+      publishedAt: (recording.startsAt ?? recording.publishedAt)?.toIso8601String() ??
           '',
     );
     Navigator.of(context).push(
@@ -431,7 +431,7 @@ class _ReminderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              sessionState.remindersScheduled ? 'Reminder' : 'Enable Reminder',
+              'Reminder',
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 6),
@@ -454,6 +454,10 @@ class _ReminderCard extends StatelessWidget {
               else
                 ElevatedButton.icon(
                   onPressed: sessionState.enableReminders,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.colors.softTeal,
+                    foregroundColor: context.colors.ink,
+                  ),
                   icon: const Icon(Icons.notifications_active_outlined),
                   label: const Text('Enable Reminder'),
                 ),
@@ -486,7 +490,7 @@ class _RecentRecordingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final when = recording.endsAt ?? recording.publishedAt;
+    final when = recording.startsAt ?? recording.publishedAt;
     final whenLabel =
         when == null ? null : DateFormat('EEE, MMM d · h:mm a').format(when);
     final thumb = recording.thumbnailUrl;

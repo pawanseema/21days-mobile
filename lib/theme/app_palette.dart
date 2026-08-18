@@ -71,16 +71,16 @@ class AppPalette extends ThemeExtension<AppPalette> {
   static const AppPalette skyYellow = AppPalette(
     id: skyYellowId,
     label: 'Sky & yellow',
-    pageBackground: Color(0xFF8DC9FA),
-    chromeBackground: Color(0xFFFFE58A),
+    pageBackground: Color(0xFFC6E4FD),
+    chromeBackground: Color(0xFFFFF2C5),
     chromeForeground: Color(0xFF133B5B),
     ink: Color(0xFF133B5B),
     mutedInk: Color(0xFF3D5A73),
     surface: Color(0xFFFFFFF8),
     mist: Color(0xFFD6EAF8),
-    accent: Color(0xFFE8B020),
-    accentSoft: Color(0xFFFFF8E0),
-    softTeal: Color(0xFF4A8FBF),
+    accent: Color(0xFFF4D890),
+    accentSoft: Color(0xFFFFFCF0),
+    softTeal: Color(0xFFA5C7DF),
   );
 
   /// Muted ice page, taupe chrome, charcoal-blue ink.

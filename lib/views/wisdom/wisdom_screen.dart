@@ -14,12 +14,22 @@ class WisdomScreen extends StatefulWidget {
 }
 
 class _WisdomScreenState extends State<WisdomScreen> {
+  final Set<String> _openIds = {};
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<WisdomProvider>().ensureLoaded();
+    });
+  }
+
+  void _toggle(String id) {
+    setState(() {
+      if (!_openIds.remove(id)) {
+        _openIds.add(id);
+      }
     });
   }
 
@@ -60,109 +70,117 @@ class _WisdomScreenState extends State<WisdomScreen> {
           final topic = topics[index - 1];
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => _openDetail(context, topic),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: context.colors.mist),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: index.isEven
-                              ? context.colors.softTeal
-                              : context.colors.softOrange,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (topic.accentLabel != null)
-                              Text(
-                                topic.accentLabel!.toUpperCase(),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: context.colors.warmOrange,
-                                  letterSpacing: 1.1,
-                                ),
-                              ),
-                            const SizedBox(height: 4),
-                            Text(topic.title, style: theme.textTheme.titleLarge),
-                            const SizedBox(height: 4),
-                            Text(topic.subtitle, style: theme.textTheme.bodyMedium),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: context.colors.mutedInk,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: _WisdomTopicCard(
+              topic: topic,
+              accentTeal: index.isEven,
+              expanded: _openIds.contains(topic.id),
+              onToggle: () => _toggle(topic.id),
             ),
           );
         },
       ),
     );
   }
+}
 
-  void _openDetail(BuildContext context, WisdomTopic topic) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        final theme = Theme.of(context);
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            20,
-            24,
-            24 + MediaQuery.paddingOf(context).bottom,
+class _WisdomTopicCard extends StatelessWidget {
+  const _WisdomTopicCard({
+    required this.topic,
+    required this.accentTeal,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final WisdomTopic topic;
+  final bool accentTeal;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onToggle,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: context.colors.mist),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 4,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: context.colors.mist,
+                      color: accentTeal
+                          ? context.colors.softTeal
+                          : context.colors.softOrange,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                ),
-                const SizedBox(height: 18),
-                Text(topic.title, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 6),
-                Text(topic.subtitle, style: theme.textTheme.bodyMedium),
-                const SizedBox(height: 16),
-                Text(topic.body, style: theme.textTheme.bodyLarge),
-              ],
-            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (topic.accentLabel != null)
+                          Text(
+                            topic.accentLabel!.toUpperCase(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: context.colors.warmOrange,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(topic.title, style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 4),
+                        Text(topic.subtitle, style: theme.textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: AnimatedRotation(
+                      turns: expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 180),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: context.colors.mutedInk,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                alignment: Alignment.topCenter,
+                child: expanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 18, top: 14),
+                        child: Text(
+                          topic.body,
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
