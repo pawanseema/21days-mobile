@@ -47,6 +47,20 @@ class SessionService {
   }
 
   Future<Map<String, dynamic>> _getJson(String path) async {
+    SessionException? lastError;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await _getJsonOnce(path);
+      } on SessionException catch (e) {
+        lastError = e;
+        if (!_isRetryable(e) || attempt == 1) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      }
+    }
+    throw lastError!;
+  }
+
+  Future<Map<String, dynamic>> _getJsonOnce(String path) async {
     final uri = Uri.parse('$baseUrl$path');
     late final http.Response response;
     try {
@@ -55,7 +69,7 @@ class SessionService {
             uri,
             headers: const {'Accept': 'application/json'},
           )
-          .timeout(const Duration(seconds: 45));
+          .timeout(const Duration(seconds: 90));
     } on Exception catch (e) {
       throw SessionException(
         'Cannot reach live API at $uri. '
@@ -64,9 +78,7 @@ class SessionService {
     }
 
     if (response.statusCode != 200) {
-      throw SessionException(
-        'Live API fetch failed (${response.statusCode}): ${response.body}',
-      );
+      throw SessionException(_apiErrorMessage(response));
     }
 
     final decoded = jsonDecode(response.body);
@@ -79,6 +91,35 @@ class SessionService {
       );
     }
     return decoded;
+  }
+
+  static bool _isRetryable(SessionException error) {
+    final text = error.message.toLowerCase();
+    if (text.contains('quota')) return false;
+    return text.contains('temporarily unavailable') ||
+        text.contains('(503)') ||
+        text.contains('timed out') ||
+        text.contains('timeout');
+  }
+
+  static String _apiErrorMessage(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        final message = decoded['message']?.toString().trim() ?? '';
+        final error = decoded['error']?.toString().trim() ?? '';
+        if (message.isNotEmpty &&
+            message.length < 180 &&
+            !message.contains('Traceback')) {
+          return message;
+        }
+        if (error.isNotEmpty) return error;
+      }
+    } catch (_) {}
+    if (response.statusCode == 503) {
+      return 'Service temporarily unavailable';
+    }
+    return 'Live API fetch failed (${response.statusCode})';
   }
 
   static String _normalizeBaseUrl(String url) {

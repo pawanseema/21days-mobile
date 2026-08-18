@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/session_provider.dart';
 import '../services/notification_service.dart';
@@ -45,8 +44,8 @@ class _NotificationDeepLinkBinderState
   void _onNotificationOpened(String? payload) {
     if (!NotificationService.isLiveDeepLink(payload)) return;
 
-    final auth = context.read<AuthProvider>();
-    if (!auth.isAuthenticated) {
+    final nav = context.read<NavigationProvider>();
+    if (!nav.inApp) {
       _pendingOpenLive = true;
       return;
     }
@@ -62,8 +61,8 @@ class _NotificationDeepLinkBinderState
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    if (auth.isAuthenticated && _pendingOpenLive && !auth.isRestoring) {
+    final nav = context.watch<NavigationProvider>();
+    if (nav.inApp && _pendingOpenLive) {
       _pendingOpenLive = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _openLive();

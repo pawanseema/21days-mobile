@@ -226,18 +226,26 @@ class _ModeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: selected ? context.colors.ink : Colors.transparent,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? context.colors.softTeal : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: selected ? Colors.white : context.colors.ink,
+              color: context.colors.ink,
               fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
               fontSize: 16,
             ),

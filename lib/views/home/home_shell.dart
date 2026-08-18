@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
-import '../../theme/app_theme.dart';
 import '../../utils/constants.dart';
-import '../account/account_screen.dart';
+import '../../widgets/chrome_portrait.dart';
 import '../live/live_screen.dart';
 import '../recordings/recordings_screen.dart';
 import '../resources/resources_screen.dart';
@@ -25,45 +23,16 @@ class HomeShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nav = context.watch<NavigationProvider>();
-    final user = context.watch<AuthProvider>().user;
 
     return Scaffold(
       appBar: AppBar(
+        leadingWidth: 72,
+        leading: const ChromePortrait(),
         title: Text(
           nav.index == 0
               ? AppConstants.appName
               : const ['Live', 'Explore', 'Recordings', 'Wisdom'][nav.index],
         ),
-        actions: [
-          if (user != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Center(
-                child: Text(
-                  user.greetingName,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.colors.chromeForeground,
-                  ),
-                ),
-              ),
-            ),
-          IconButton(
-            tooltip: 'Account',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const AccountScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.manage_accounts_outlined),
-          ),
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: () => context.read<AuthProvider>().signOut(),
-            icon: const Icon(Icons.logout_rounded),
-          ),
-        ],
       ),
       body: IndexedStack(
         index: nav.index,

@@ -98,6 +98,7 @@ class LiveScreen extends StatelessWidget {
     final session = sessionState.session;
     final recent = sessionState.recentRecordings;
     final loadError = sessionState.error;
+    final recentError = sessionState.recentError;
 
     return RefreshIndicator(
       onRefresh: sessionState.refresh,
@@ -107,14 +108,15 @@ class LiveScreen extends StatelessWidget {
         children: [
           if (loadError != null) ...[
             _LiveLoadErrorBanner(
+              title: 'Could not reach live sessions',
               message: loadError,
               onRetry: sessionState.refresh,
             ),
             const SizedBox(height: 16),
           ],
-          if (session == null)
+          if (session == null && loadError == null)
             _EmptyLiveCard(theme: theme)
-          else ...[
+          else if (session != null) ...[
             _LiveSessionCard(
               session: session,
               theme: theme,
@@ -134,13 +136,19 @@ class LiveScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Latest recording from each channel (last 72 hours). Tap to watch.',
+            'Tap to watch',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: context.colors.mutedInk,
             ),
           ),
           const SizedBox(height: 14),
-          if (recent.isEmpty)
+          if (recentError != null && recent.isEmpty)
+            _LiveLoadErrorBanner(
+              title: 'Could not load recent sessions',
+              message: recentError,
+              onRetry: sessionState.refresh,
+            )
+          else if (recent.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
@@ -150,16 +158,22 @@ class LiveScreen extends StatelessWidget {
                 ),
               ),
             )
-          else
+          else ...[
+            if (recentError != null) ...[
+              _LiveLoadErrorBanner(
+                title: 'Could not refresh recent sessions',
+                message: recentError,
+                onRetry: sessionState.refresh,
+              ),
+              const SizedBox(height: 12),
+            ],
             ...recent.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _RecentRecordingCard(
-                  recording: item,
-                  onTap: () => _openRecording(context, item),
-                ),
+              (item) => _RecentRecordingCard(
+                recording: item,
+                onTap: () => _openRecording(context, item),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -168,10 +182,12 @@ class LiveScreen extends StatelessWidget {
 
 class _LiveLoadErrorBanner extends StatelessWidget {
   const _LiveLoadErrorBanner({
+    required this.title,
     required this.message,
     required this.onRetry,
   });
 
+  final String title;
   final String message;
   final VoidCallback onRetry;
 
@@ -190,7 +206,7 @@ class _LiveLoadErrorBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Could not reach live sessions',
+            title,
             style: theme.textTheme.titleMedium?.copyWith(
               color: context.colors.ink,
             ),
@@ -475,88 +491,87 @@ class _RecentRecordingCard extends StatelessWidget {
         when == null ? null : DateFormat('EEE, MMM d · h:mm a').format(when);
     final thumb = recording.thumbnailUrl;
 
-    return Material(
-      color: Colors.white.withValues(alpha: 0.92),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: context.colors.mist),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (thumb != null)
-                      Image.network(
-                        thumb,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, error, stackTrace) =>
-                            ColoredBox(color: context.colors.mist),
-                      )
-                    else
-                      ColoredBox(color: context.colors.mist),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          shape: BoxShape.circle,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 88,
+                    height: 50,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (thumb != null)
+                          Image.network(
+                            thumb,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, error, stackTrace) =>
+                                ColoredBox(color: context.colors.mist),
+                          )
+                        else
+                          ColoredBox(color: context.colors.mist),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.play_circle_fill,
+                            color: Colors.white.withValues(alpha: 0.92),
+                            size: 22,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      recording.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: context.colors.ink,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (recording.channelLabel.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        recording.channelLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: context.colors.mutedInk,
+                        recording.title.isEmpty
+                            ? 'Recent session'
+                            : recording.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: context.colors.ink,
+                          fontSize: 15,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                    if (whenLabel != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        whenLabel,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: context.colors.mutedInk,
+                      if (recording.channelLabel.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          recording.channelLabel,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: context.colors.mutedInk,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                      ],
+                      if (whenLabel != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          whenLabel,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: context.colors.mutedInk,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

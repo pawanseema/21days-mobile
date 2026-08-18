@@ -28,6 +28,7 @@ class SessionProvider extends ChangeNotifier {
   List<RecentRecording> _recent = const [];
   bool _loading = true;
   String? _error;
+  String? _recentError;
   bool _remindersScheduled = false;
   String? _statusMessage;
 
@@ -36,6 +37,7 @@ class SessionProvider extends ChangeNotifier {
   List<RecentRecording> get recentRecordings => _recent;
   bool get isLoading => _loading;
   String? get error => _error;
+  String? get recentError => _recentError;
   bool get remindersScheduled => _remindersScheduled;
   String? get statusMessage => _statusMessage;
   NotificationService get notifications => _notificationService;
@@ -46,27 +48,39 @@ class SessionProvider extends ChangeNotifier {
   Future<void> refresh() async {
     _loading = true;
     _error = null;
+    _recentError = null;
     notifyListeners();
 
+    // Live and recent are independent YouTube lookups. A 503 on one must not
+    // skip or wipe the other — that left Recent empty after a Live retry.
     try {
       _session = await _sessionService.fetchNextSession();
-      try {
-        _recent = await _sessionService.fetchRecentRecordings();
-      } catch (e) {
-        debugPrint('SessionProvider recent fetch failed: $e');
-        _recent = const [];
-      }
+    } catch (e) {
+      debugPrint('SessionProvider session fetch failed: $e');
+      _error = _errorText(e);
+    }
+
+    try {
+      _recent = await _sessionService.fetchRecentRecordings();
+    } catch (e) {
+      debugPrint('SessionProvider recent fetch failed: $e');
+      _recentError = _errorText(e);
+    }
+
+    try {
       await _syncReminderFlag();
     } catch (e) {
-      debugPrint('SessionProvider refresh failed: $e');
-      _session = null;
-      _recent = const [];
-      _error = e.toString();
-      _remindersScheduled = false;
-    } finally {
-      _loading = false;
-      notifyListeners();
+      debugPrint('SessionProvider reminder sync failed: $e');
     }
+
+    _loading = false;
+    notifyListeners();
+  }
+
+  static String _errorText(Object error) {
+    final text = error.toString();
+    const prefix = 'SessionException: ';
+    return text.startsWith(prefix) ? text.substring(prefix.length) : text;
   }
 
   Future<void> openFromReminder() async {
