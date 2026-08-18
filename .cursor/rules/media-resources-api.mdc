@@ -20,6 +20,7 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 | GET | `/api/live/sessions` | Next/current session; URLs from `config/live_sessions.json` |
 | GET | `/api/live/recent` | Latest completed livestream per channel within ~72h (≤1 each) |
 | GET | `/api/recordings` | Latest year playlist sliced into sessions (oldest-first) |
+| GET | `/api/wisdom/topics` | Static Wisdom tab topics from `config/wisdom_topics.json` |
 | GET | `/api/videos/<video_id>/chapters` | Chroma timestamp chapters (empty if not ingested) |
 | POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
 | POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
@@ -112,6 +113,29 @@ and sliced by each session’s `video_count` (split sessions like 3A+3B share 21
 
 Map in `YearRecordings` / `RecordingSession` / `SessionVideo`. Session video tap
 opens `VideoPlayerScreen` via `RecordingResult`.
+
+### Wisdom topics (`GET /api/wisdom/topics`)
+
+Shared catalog for web and mobile. Edit `config/wisdom_topics.json` (or
+`WISDOM_TOPICS_CONFIG`). Mobile falls back to a bundled copy if the API is down.
+
+```json
+{
+  "heading": "Meditation wisdom",
+  "subtitle": "Foundational Sahaja Yoga topics to deepen your attention.",
+  "topics": [
+    {
+      "id": "origin-of-sahaja-yoga",
+      "title": "The origin of Sahaja Yoga",
+      "subtitle": "Shri Mataji and the gift of Self-Realization",
+      "accent_label": "Origins",
+      "body": "…"
+    }
+  ]
+}
+```
+
+Map in `WisdomTopic` / `WisdomTopicsResponse`.
 
 ### Video chapters (`GET /api/videos/<video_id>/chapters`)
 

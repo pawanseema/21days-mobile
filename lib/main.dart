@@ -8,6 +8,7 @@ import 'providers/recordings_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/session_provider.dart';
 import 'providers/theme_controller.dart';
+import 'providers/wisdom_provider.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap.dart';
 import 'services/notification_service.dart';
@@ -72,6 +73,7 @@ class TwentyOneDaysApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(create: (_) => RecordingsProvider()),
+        ChangeNotifierProvider(create: (_) => WisdomProvider()),
         ChangeNotifierProvider(create: (_) => MentorProvider()),
       ],
       child: NotificationDeepLinkBinder(

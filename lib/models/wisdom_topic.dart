@@ -13,9 +13,54 @@ class WisdomTopic {
   final String subtitle;
   final String body;
   final String? accentLabel;
+
+  factory WisdomTopic.fromJson(Map<String, dynamic> json) {
+    final accent = json['accent_label']?.toString().trim();
+    return WisdomTopic(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      accentLabel: (accent == null || accent.isEmpty) ? null : accent,
+    );
+  }
 }
 
-/// Curated Sahaja Yoga topics shown on the Wisdom tab.
+/// Payload from `GET /api/wisdom/topics`.
+class WisdomTopicsResponse {
+  const WisdomTopicsResponse({
+    required this.heading,
+    required this.subtitle,
+    required this.topics,
+  });
+
+  final String heading;
+  final String subtitle;
+  final List<WisdomTopic> topics;
+
+  factory WisdomTopicsResponse.fromJson(Map<String, dynamic> json) {
+    final raw = json['topics'];
+    final topics = <WisdomTopic>[];
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is Map<String, dynamic>) {
+          topics.add(WisdomTopic.fromJson(item));
+        } else if (item is Map) {
+          topics.add(WisdomTopic.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+    return WisdomTopicsResponse(
+      heading: json['heading']?.toString().trim().isNotEmpty == true
+          ? json['heading'].toString()
+          : 'Meditation wisdom',
+      subtitle: json['subtitle']?.toString() ?? '',
+      topics: topics,
+    );
+  }
+}
+
+/// Bundled fallback if `GET /api/wisdom/topics` is unreachable.
 class WisdomCatalog {
   WisdomCatalog._();
 

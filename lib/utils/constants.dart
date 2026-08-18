@@ -36,6 +36,9 @@ class AppConstants {
   /// Latest year playlist sliced into configured sessions.
   static const String recordingsPath = '/api/recordings';
 
+  /// Shared Wisdom tab topics (`config/wisdom_topics.json` on the backend).
+  static const String wisdomTopicsPath = '/api/wisdom/topics';
+
   /// Chroma timestamp chapters for one video.
   static String videoChaptersPath(String videoId) =>
       '/api/videos/${Uri.encodeComponent(videoId)}/chapters';

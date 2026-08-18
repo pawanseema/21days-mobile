@@ -6,6 +6,7 @@ This Flutter app talks to the **21days-media-resources** Flask API.
 - API implementation: `../21days-media-resources/api/flask_api_server.py`
 - Design doc: `../21days-media-resources/DESIGN.md`
 - Live session links config: `../21days-media-resources/config/live_sessions.json`
+- Wisdom topics (web + mobile): `../21days-media-resources/config/wisdom_topics.json`
 
 Cursor rule for API shapes: `.cursor/rules/media-resources-api.mdc`
 
