@@ -16,6 +16,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.accent,
     required this.accentSoft,
     required this.softTeal,
+    required this.accentStrong,
   });
 
   /// Stable id stored in preferences.
@@ -54,6 +55,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
   /// Cool secondary accent (Wisdom dots, etc.).
   final Color softTeal;
 
+  /// Dark gold for small labels (Wisdom topic kicker).
+  final Color accentStrong;
+
   // Back-compat aliases used across existing screens.
   Color get pageBlue => pageBackground;
   Color get bannerYellow => chromeBackground;
@@ -72,15 +76,16 @@ class AppPalette extends ThemeExtension<AppPalette> {
     id: skyYellowId,
     label: 'Sky & yellow',
     pageBackground: Color(0xFFC6E4FD),
-    chromeBackground: Color(0xFFFFF2C5),
+    chromeBackground: Color(0xFFFFF0BF),
     chromeForeground: Color(0xFF133B5B),
     ink: Color(0xFF133B5B),
     mutedInk: Color(0xFF3D5A73),
     surface: Color(0xFFFFFFF8),
-    mist: Color(0xFFD6EAF8),
-    accent: Color(0xFFF4D890),
-    accentSoft: Color(0xFFFFFCF0),
+    mist: Color(0xFFDAE9ED),
+    accent: Color(0xFFF3D485),
+    accentSoft: Color(0xFFFFFBEE),
     softTeal: Color(0xFFA5C7DF),
+    accentStrong: Color(0xFF6B4E12),
   );
 
   /// Muted ice page, taupe chrome, charcoal-blue ink.
@@ -97,6 +102,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     accent: Color(0xFF8B7355),
     accentSoft: Color(0xFFF4F1EB),
     softTeal: Color(0xFF6B8499),
+    accentStrong: Color(0xFF5C4A38),
   );
 
   /// Palettes shown in the appearance picker. Append new schemes here.
@@ -126,6 +132,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? accent,
     Color? accentSoft,
     Color? softTeal,
+    Color? accentStrong,
   }) {
     return AppPalette(
       id: id ?? this.id,
@@ -140,6 +147,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       accent: accent ?? this.accent,
       accentSoft: accentSoft ?? this.accentSoft,
       softTeal: softTeal ?? this.softTeal,
+      accentStrong: accentStrong ?? this.accentStrong,
     );
   }
 

@@ -139,7 +139,7 @@ class _WisdomTopicCard extends StatelessWidget {
                           Text(
                             topic.accentLabel!.toUpperCase(),
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: context.colors.warmOrange,
+                              color: context.colors.accentStrong,
                               letterSpacing: 1.1,
                             ),
                           ),

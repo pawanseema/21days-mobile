@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/navigation_provider.dart';
-import '../../utils/constants.dart';
 import '../../widgets/chrome_portrait.dart';
 import '../live/live_screen.dart';
 import '../recordings/recordings_screen.dart';
@@ -29,9 +28,7 @@ class HomeShell extends StatelessWidget {
         leadingWidth: 72,
         leading: const ChromePortrait(),
         title: Text(
-          nav.index == 0
-              ? AppConstants.appName
-              : const ['Live', 'Explore', 'Recordings', 'Wisdom'][nav.index],
+          const ['Live & Upcoming', 'Explore', 'Recordings', 'Wisdom'][nav.index],
         ),
       ),
       body: IndexedStack(
