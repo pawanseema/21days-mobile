@@ -43,6 +43,16 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   mockito: ^5.4.6
   build_runner: ^2.5.4
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/app_icon.png
+  # Full orange fill behind Android adaptive icon mask.
+  adaptive_icon_background: "#F26A1B"
+  adaptive_icon_foreground: assets/images/app_icon.png
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
