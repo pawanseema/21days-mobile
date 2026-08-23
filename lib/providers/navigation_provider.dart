@@ -1,23 +1,22 @@
 import 'package:flutter/foundation.dart';
 
-/// Bottom-nav tab index: Live, Explore, Recordings, Wisdom.
+/// Bottom-nav tab index: Explore, Upcoming (Live), Recordings, (optional Wisdom).
 class NavigationProvider extends ChangeNotifier {
-  int _index = 0;
+  /// Set to `true` to show the Wisdom tab again (code stays in the repo).
+  static const bool showWisdomTab = false;
 
-  /// Whether the user has left the welcome screen for the tab shell.
-  bool _inApp = false;
+  static const int exploreTabIndex = 0;
+  static const int liveTabIndex = 1;
+  static const int recordingsTabIndex = 2;
+
+  int _index = exploreTabIndex;
 
   int get index => _index;
-  bool get inApp => _inApp;
 
-  void enterApp() {
-    if (_inApp) return;
-    _inApp = true;
-    notifyListeners();
-  }
+  int get maxTabIndex => showWisdomTab ? 3 : 2;
 
   void setIndex(int value) {
-    if (value < 0 || value > 3) return;
+    if (value < 0 || value > maxTabIndex) return;
     if (value == _index) {
       // Still notify so listeners can react (e.g. reminder deep link refresh).
       notifyListeners();
@@ -27,8 +26,8 @@ class NavigationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Live tab index.
-  static const int liveTabIndex = 0;
+  /// Reserved for [WelcomeScreen] when the start gate is re-enabled.
+  void enterApp() => notifyListeners();
 
   void openLiveTab() => setIndex(liveTabIndex);
 }

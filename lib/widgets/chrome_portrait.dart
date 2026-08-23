@@ -6,7 +6,8 @@ class ChromePortrait extends StatelessWidget {
 
   final double height;
 
-  static const assetPath = 'assets/images/shri_mataji_portrait.png';
+  static const assetPath =
+      'assets/images/shri_mataji_round_blue_shadow_white_name.png';
 
   @override
   Widget build(BuildContext context) {

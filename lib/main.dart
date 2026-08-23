@@ -14,7 +14,6 @@ import 'services/firebase_bootstrap.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
-import 'views/auth/welcome_screen.dart';
 import 'views/home/home_shell.dart';
 import 'widgets/notification_deep_link_binder.dart';
 
@@ -83,27 +82,11 @@ class TwentyOneDaysApp extends StatelessWidget {
               title: AppConstants.appName,
               debugShowCheckedModeBanner: false,
               theme: AppTheme.fromPalette(themes.palette),
-              home: const _StartGate(),
+              home: const HomeShell(),
             );
           },
         ),
       ),
-    );
-  }
-}
-
-/// Welcome photo screen, then the four-tab shell. Auth is unused for now.
-class _StartGate extends StatelessWidget {
-  const _StartGate();
-
-  @override
-  Widget build(BuildContext context) {
-    final inApp = context.watch<NavigationProvider>().inApp;
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 280),
-      child: inApp
-          ? const HomeShell(key: ValueKey('home'))
-          : const WelcomeScreen(key: ValueKey('welcome')),
     );
   }
 }

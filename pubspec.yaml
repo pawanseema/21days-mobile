@@ -47,4 +47,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/shri_mataji_portrait.png
+    - assets/images/shri_mataji_round_blue_shadow_white_name.png

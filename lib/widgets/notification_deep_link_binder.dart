@@ -6,7 +6,7 @@ import '../providers/session_provider.dart';
 import '../services/notification_service.dart';
 
 /// Listens for reminder notification taps (cold start + background) and opens
-/// the Live tab with a fresh session fetch.
+/// the Upcoming tab with a fresh session fetch.
 class NotificationDeepLinkBinder extends StatefulWidget {
   const NotificationDeepLinkBinder({super.key, required this.child});
 
@@ -43,9 +43,7 @@ class _NotificationDeepLinkBinderState
 
   void _onNotificationOpened(String? payload) {
     if (!NotificationService.isLiveDeepLink(payload)) return;
-
-    final nav = context.read<NavigationProvider>();
-    if (!nav.inApp) {
+    if (!mounted) {
       _pendingOpenLive = true;
       return;
     }
@@ -61,8 +59,7 @@ class _NotificationDeepLinkBinderState
 
   @override
   Widget build(BuildContext context) {
-    final nav = context.watch<NavigationProvider>();
-    if (nav.inApp && _pendingOpenLive) {
+    if (_pendingOpenLive) {
       _pendingOpenLive = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _openLive();
