@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/chrome_portrait.dart';
 import 'signup_screen.dart';
 
 /// Login entry styled to match the media-resources search.html hero.
@@ -132,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 18),
                   Center(
                     child: Image.asset(
-                      'assets/images/shri_mataji_portrait.png',
+                      ChromePortrait.assetPath,
                       height: 160,
                       fit: BoxFit.contain,
                     ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/navigation_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/chrome_portrait.dart';
 
 /// Open-access start screen. Auth is parked for a later release.
 class WelcomeScreen extends StatelessWidget {
@@ -72,7 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   Center(
                     child: Image.asset(
-                      'assets/images/shri_mataji_portrait.png',
+                      ChromePortrait.assetPath,
                       height: 160,
                       fit: BoxFit.contain,
                     ),
