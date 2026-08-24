@@ -108,7 +108,7 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Open a session to browse its videos. Tap a row to play in the app.',
+            'Open a session to browse its recordings. Tap a row to play in the app.',
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -140,9 +140,28 @@ class _SessionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final count = session.videos.length;
-    final subtitle = count == 0
-        ? 'No videos yet'
-        : '$count video${count == 1 ? '' : 's'}';
+    final countLabel = count == 0
+        ? 'No recordings yet'
+        : '$count recording${count == 1 ? '' : 's'}';
+    final dateFmt = DateFormat('MMM d, y');
+    String? rangeLabel;
+    final start = session.startsAt;
+    final end = session.endsAt;
+    if (start != null && end != null) {
+      rangeLabel = start.year == end.year &&
+              start.month == end.month &&
+              start.day == end.day
+          ? dateFmt.format(start)
+          : '${dateFmt.format(start)} – ${dateFmt.format(end)}';
+    } else if (start != null) {
+      rangeLabel = 'Starts ${dateFmt.format(start)}';
+    } else if (end != null) {
+      rangeLabel = 'Ends ${dateFmt.format(end)}';
+    }
+    final subtitle = [
+      if (rangeLabel != null) rangeLabel,
+      countLabel,
+    ].join(' · ');
 
     return Material(
       color: Colors.white,
@@ -175,7 +194,7 @@ class _SessionTile extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'This session has no videos in the playlist yet.',
+                      'This session has no recordings in the playlist yet.',
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),

@@ -55,14 +55,34 @@ class RecordingSession {
     required this.label,
     required this.videoCount,
     required this.videos,
+    this.startsAt,
+    this.endsAt,
   });
 
   final String id;
   final String label;
   final int videoCount;
   final List<SessionVideo> videos;
+  final DateTime? startsAt;
+  final DateTime? endsAt;
 
   factory RecordingSession.fromJson(Map<String, dynamic> json) {
+    /// Config calendar dates (`YYYY-MM-DD`) must stay on that civil day —
+    /// [DateTime.parse] treats date-only as UTC and [toLocal] shifts them back a day.
+    DateTime? parseCalendarDate(Object? raw) {
+      if (raw is! String || raw.trim().isEmpty) return null;
+      final text = raw.trim();
+      final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(text);
+      if (match != null) {
+        return DateTime(
+          int.parse(match.group(1)!),
+          int.parse(match.group(2)!),
+          int.parse(match.group(3)!),
+        );
+      }
+      return DateTime.parse(text).toLocal();
+    }
+
     final raw = json['videos'];
     final videos = raw is List
         ? raw
@@ -78,6 +98,8 @@ class RecordingSession {
           ? (json['video_count'] as num).toInt()
           : videos.length,
       videos: videos,
+      startsAt: parseCalendarDate(json['starts_at']),
+      endsAt: parseCalendarDate(json['ends_at']),
     );
   }
 }

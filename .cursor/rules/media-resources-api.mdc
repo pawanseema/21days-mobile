@@ -86,6 +86,8 @@ Edit channels / Zoom in backend `config/live_sessions.json` — not hardcoded in
 
 Latest `year` in `config/year_playlists.json`. Playlist items are sorted oldest-first
 and sliced by each session’s `video_count` (split sessions like 3A+3B share 21).
+Session `starts_at` / `ends_at` come from static `start_date` / `end_date` in that
+config (YYYY-MM-DD), not from YouTube publish times.
 
 ```json
 {
@@ -97,6 +99,8 @@ and sliced by each session’s `video_count` (split sessions like 3A+3B share 21
       "id": "2026-s1",
       "label": "Session 1",
       "video_count": 21,
+      "starts_at": "YYYY-MM-DD",
+      "ends_at": "YYYY-MM-DD",
       "videos": [
         {
           "video_id": "…",

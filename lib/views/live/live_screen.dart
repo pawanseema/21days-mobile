@@ -131,7 +131,7 @@ class LiveScreen extends StatelessWidget {
           ],
           const SizedBox(height: 28),
           Text(
-            'Recent sessions',
+            'Recent',
             style: theme.textTheme.titleLarge?.copyWith(color: context.colors.ink),
           ),
           const SizedBox(height: 6),
@@ -294,8 +294,6 @@ class _LiveSessionCard extends StatelessWidget {
         start == null ? null : DateFormat('EEEE, MMM d').format(start);
     final timeLabel =
         start == null ? null : DateFormat('h:mm a').format(start);
-    final eyebrow = session.isLiveNow ? 'Live now' : 'Upcoming live session';
-
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
       decoration: BoxDecoration(
@@ -347,13 +345,6 @@ class _LiveSessionCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          Text(
-            eyebrow,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: context.colors.mutedInk,
-            ),
-          ),
-          const SizedBox(height: 8),
           Text(
             session.title.isEmpty ? 'Sahaja Yoga meditation' : session.title,
             style: theme.textTheme.headlineSmall?.copyWith(color: context.colors.ink),

@@ -63,15 +63,17 @@ class SearchProvider extends ChangeNotifier {
       ? 'Try searching for a topic from your recent sessions.'
       : 'Search for affirmations, chakras, or practice guides.';
 
-  /// Starter queries matching media-resources `search.html` example chips.
+  /// Starter queries matching media-resources Explore chips.
+  /// Ordered shortest-first so wrap uses less vertical space.
   List<String> get examplePrompts => _tab == ResourceTab.videos
       ? const [
-          'What is Sahaja Yoga Meditation?',
+          'Foot Soak with Mark',
+          'Meditation with Flute',
           'Heart chakra meditation',
-          'Experience the silence within',
+          'Meditation and Daily Life',
           "Founder's talk on Innocence",
-          'Footsoak with Wendy',
-          'Piano music for meditation by Sia',
+          'Experience the silence within',
+          'What is Sahaja Yoga Meditation?',
         ]
       : const [
           'Beginner meditation handout',
