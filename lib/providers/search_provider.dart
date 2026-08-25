@@ -56,8 +56,8 @@ class SearchProvider extends ChangeNotifier {
   RecordingResult? get engagedSeed => _engagedSeed;
 
   String get searchHint => _tab == ResourceTab.videos
-      ? 'Type to search meditation videos'
-      : 'Type to search meditation handouts';
+      ? 'Search meditation videos'
+      : 'Search meditation handouts';
 
   String get emptyPrompt => _tab == ResourceTab.videos
       ? 'Try searching for a topic from your recent sessions.'

@@ -461,43 +461,36 @@ class _ReminderCard extends StatelessWidget {
               'Reminder',
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 6),
-            Text(
-              !session.canRemind
-                  ? 'Start time is not available yet. Pull to refresh later.'
-                  : sessionState.remindersScheduled
-                      ? 'Reminder is on for 5 minutes before this session starts.'
-                      : 'Get notified 5 minutes before this session starts.',
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (session.canRemind) ...[
-              const SizedBox(height: 14),
-              if (sessionState.remindersScheduled)
-                OutlinedButton.icon(
-                  onPressed: sessionState.disableReminders,
-                  icon: const Icon(Icons.notifications_off_outlined),
-                  label: const Text('Disable Reminder'),
-                )
-              else
-                ElevatedButton.icon(
-                  onPressed: sessionState.enableReminders,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.colors.softTeal,
-                    foregroundColor: context.colors.ink,
-                  ),
-                  icon: const Icon(Icons.notifications_active_outlined),
-                  label: const Text('Enable Reminder'),
-                ),
-            ],
-            if (sessionState.statusMessage != null) ...[
-              const SizedBox(height: 10),
+            const SizedBox(height: 10),
+            if (!session.canRemind)
               Text(
-                sessionState.statusMessage!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: context.colors.deepTeal,
-                ),
+                'Start time is not available yet. Pull to refresh later.',
+                style: theme.textTheme.bodyMedium,
+              )
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Notify 5 minutes before the session starts',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Switch.adaptive(
+                    value: sessionState.remindersScheduled,
+                    activeColor: context.colors.softTeal,
+                    onChanged: (enabled) {
+                      if (enabled) {
+                        sessionState.enableReminders();
+                      } else {
+                        sessionState.disableReminders();
+                      }
+                    },
+                  ),
+                ],
               ),
-            ],
           ],
         ),
       ),
