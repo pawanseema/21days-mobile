@@ -285,7 +285,7 @@ class _ExampleChip extends StatelessWidget {
             style: theme.textTheme.labelLarge?.copyWith(
               color: context.colors.ink,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ),
@@ -412,6 +412,7 @@ class _ResultsPane extends StatelessWidget {
             result: item,
             showFindSimilar: search.showFindSimilarOn(item),
             onFindSimilar: () => search.findSimilarClips(item),
+            showResultDebug: search.uiConfig.showResultDebug,
             onTap: () => onOpenVideo(item),
           );
         },

@@ -11,12 +11,14 @@ class VideoResultCard extends StatelessWidget {
     required this.onTap,
     this.showFindSimilar = false,
     this.onFindSimilar,
+    this.showResultDebug = false,
   });
 
   final RecordingResult result;
   final VoidCallback onTap;
   final bool showFindSimilar;
   final VoidCallback? onFindSimilar;
+  final bool showResultDebug;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +114,7 @@ class VideoResultCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium,
                     ),
-                    if (result.chakra.isNotEmpty) ...[
+                    if (showResultDebug && result.chakra.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       _Chip(label: result.chakra, accent: true),
                     ],
