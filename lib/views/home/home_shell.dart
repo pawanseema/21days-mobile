@@ -28,7 +28,7 @@ class HomeShell extends StatelessWidget {
     final index = nav.index.clamp(0, _pages.length - 1);
 
     return Scaffold(
-      appBar: const ChromeHeader(),
+      appBar: ChromeHeader.preferredSizeFor(context),
       body: IndexedStack(
         index: index,
         children: _pages,

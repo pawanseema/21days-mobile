@@ -5,15 +5,27 @@ import '../theme/app_theme.dart';
 import 'chrome_portrait.dart';
 
 /// Fixed yellow-bar branding shared across all tabs.
-class ChromeHeader extends StatelessWidget implements PreferredSizeWidget {
+///
+/// Wrap with [PreferredSize] using [preferredHeightFor] so the status-bar
+/// inset is included (required on notched iPhones).
+class ChromeHeader extends StatelessWidget {
   const ChromeHeader({super.key});
 
   static const headline = 'Explore 21 Days';
   static const subtitle = 'Online Sahaja Yoga Meditation Course';
   static const aboutUrl = 'https://us.sahajayoga.org/21days/';
 
-  @override
-  Size get preferredSize => const Size.fromHeight(72);
+  /// Yellow bar content height below the status bar.
+  static const double contentHeight = 76;
+
+  /// Full AppBar height including status-bar / notch inset.
+  static double preferredHeightFor(BuildContext context) =>
+      MediaQuery.paddingOf(context).top + contentHeight;
+
+  static PreferredSize preferredSizeFor(BuildContext context) => PreferredSize(
+        preferredSize: Size.fromHeight(preferredHeightFor(context)),
+        child: const ChromeHeader(),
+      );
 
   Future<void> _openAbout(BuildContext context) async {
     final uri = Uri.parse(aboutUrl);
@@ -30,56 +42,69 @@ class ChromeHeader extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final colors = context.colors;
     final display = theme.textTheme;
-    final portraitHeight = MediaQuery.sizeOf(context).width < 768 ? 64.0 : 72.0;
+    final narrow = MediaQuery.sizeOf(context).width < 768;
+    final portraitHeight = narrow ? 52.0 : 64.0;
+    final headlineSize = narrow ? 17.0 : 20.0;
+    final subtitleSize = narrow ? 11.5 : 13.0;
 
     return Material(
       color: colors.chromeBackground,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: preferredSize.height,
+          height: contentHeight,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 12, 6),
+            padding: const EdgeInsets.fromLTRB(6, 4, 8, 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ChromePortrait(height: portraitHeight),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        headline,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: display.titleLarge?.copyWith(
-                          color: colors.chromeForeground,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          height: 1.1,
-                        ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width - 140,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: display.bodyMedium?.copyWith(
-                          color: colors.mutedInk,
-                          fontSize: 13,
-                          height: 1.2,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            headline,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.ellipsis,
+                            style: display.titleLarge?.copyWith(
+                              color: colors.chromeForeground,
+                              fontWeight: FontWeight.w700,
+                              fontSize: headlineSize,
+                              height: 1.15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: display.bodyMedium?.copyWith(
+                              color: colors.mutedInk,
+                              fontSize: subtitleSize,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 TextButton(
                   onPressed: () => _openAbout(context),
                   style: TextButton.styleFrom(
                     foregroundColor: colors.ink,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -87,7 +112,7 @@ class ChromeHeader extends StatelessWidget implements PreferredSizeWidget {
                     'About',
                     style: display.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ),

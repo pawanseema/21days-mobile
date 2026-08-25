@@ -431,6 +431,7 @@ class _ResultsPane extends StatelessWidget {
         final item = search.handoutResults[index];
         return HandoutResultCard(
           result: item,
+          showResultDebug: search.uiConfig.showResultDebug,
           onTap: () => onOpenHandout(item),
         );
       },

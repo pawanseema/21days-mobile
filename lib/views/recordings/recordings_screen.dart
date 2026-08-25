@@ -280,7 +280,7 @@ class _SessionVideoRow extends StatelessWidget {
                         video.title.isEmpty ? 'Meditation' : video.title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: context.colors.ink,
-                          fontSize: 15,
+                          fontSize: 13.5,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

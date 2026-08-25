@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 import '../../models/handout_model.dart';
 import '../../theme/app_theme.dart';
 
-/// Handout search card aligned with media-resources handout results UI.
+/// Handout search card — title + description in release; optional debug pills.
 class HandoutResultCard extends StatelessWidget {
   const HandoutResultCard({
     super.key,
     required this.result,
     required this.onTap,
+    this.showResultDebug = false,
   });
 
   final HandoutResult result;
   final VoidCallback onTap;
+  final bool showResultDebug;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final showFileType =
+        showResultDebug && result.fileType.trim().isNotEmpty;
+    final debugTags =
+        showResultDebug ? result.tags.take(6).toList(growable: false) : const <String>[];
 
     return Material(
       color: Colors.white,
@@ -39,7 +45,9 @@ class HandoutResultCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       result.title.isEmpty ? 'Handout' : result.title,
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -50,16 +58,16 @@ class HandoutResultCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _Chip(label: result.topicLabel, accent: true),
-                  if (result.fileType.trim().isNotEmpty)
+              if (showFileType) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
                     _Chip(label: result.fileType.toUpperCase()),
-                ],
-              ),
+                  ],
+                ),
+              ],
               if (result.truncatedDescription.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Text(
@@ -67,13 +75,12 @@ class HandoutResultCard extends StatelessWidget {
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
-              if (result.tags.isNotEmpty) ...[
+              if (debugTags.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: result.tags
-                      .take(6)
+                  children: debugTags
                       .map((tag) => _Chip(label: tag))
                       .toList(),
                 ),
@@ -94,23 +101,22 @@ class HandoutResultCard extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.label, this.accent = false});
+  const _Chip({required this.label});
 
   final String label;
-  final bool accent;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: accent ? context.colors.apricotMist : context.colors.mist,
+        color: context.colors.mist,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: accent ? context.colors.warmOrange : context.colors.ink,
+              color: context.colors.ink,
             ),
       ),
     );

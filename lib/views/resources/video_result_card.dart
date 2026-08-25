@@ -72,7 +72,9 @@ class VideoResultCard extends StatelessWidget {
                       result.videoTitle.isEmpty
                           ? 'Meditation video'
                           : result.videoTitle,
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 15,
+                      ),
                     ),
                     if (result.sectionTitle.isNotEmpty) ...[
                       const SizedBox(height: 4),

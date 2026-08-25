@@ -294,10 +294,17 @@ class _LiveSessionCard extends StatelessWidget {
         start == null ? null : DateFormat('EEEE, MMM d').format(start);
     final timeLabel =
         start == null ? null : DateFormat('h:mm a').format(start);
+    // Compact density on phone: title ~62.5% of headline, body/meta ~75%.
+    final titleSize = (theme.textTheme.headlineSmall?.fontSize ?? 24) * 0.625;
+    final bodySize = (theme.textTheme.bodyLarge?.fontSize ?? 16) * 0.75;
+    final labelSize = (theme.textTheme.labelLarge?.fontSize ?? 14) * 0.75;
+    final sectionSize = (theme.textTheme.titleMedium?.fontSize ?? 16) * 0.75;
+    final hintSize = (theme.textTheme.bodyMedium?.fontSize ?? 14) * 0.75;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         color: Colors.white.withValues(alpha: 0.72),
         border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
         boxShadow: [
@@ -313,7 +320,7 @@ class _LiveSessionCard extends StatelessWidget {
         children: [
           if (session.isLiveNow) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.redAccent,
                 borderRadius: BorderRadius.circular(8),
@@ -324,13 +331,14 @@ class _LiveSessionCard extends StatelessWidget {
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
+                  fontSize: labelSize,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ] else ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: context.colors.bannerYellow,
                 borderRadius: BorderRadius.circular(8),
@@ -340,45 +348,73 @@ class _LiveSessionCard extends StatelessWidget {
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: context.colors.ink,
                   fontWeight: FontWeight.w700,
+                  fontSize: labelSize,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
           Text(
             session.title.isEmpty ? 'Sahaja Yoga meditation' : session.title,
-            style: theme.textTheme.headlineSmall?.copyWith(color: context.colors.ink),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: context.colors.ink,
+              fontSize: titleSize,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           if (session.channelLabel.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _MetaRow(icon: Icons.podcasts_outlined, label: session.channelLabel),
+            const SizedBox(height: 6),
+            _MetaRow(
+              icon: Icons.podcasts_outlined,
+              label: session.channelLabel,
+              fontSize: bodySize,
+              iconSize: 14,
+            ),
           ],
           if (dateLabel != null) ...[
-            const SizedBox(height: 8),
-            _MetaRow(icon: Icons.calendar_today_outlined, label: dateLabel),
+            const SizedBox(height: 6),
+            _MetaRow(
+              icon: Icons.calendar_today_outlined,
+              label: dateLabel,
+              fontSize: bodySize,
+              iconSize: 14,
+            ),
           ],
           if (timeLabel != null) ...[
-            const SizedBox(height: 8),
-            _MetaRow(icon: Icons.schedule_outlined, label: timeLabel),
+            const SizedBox(height: 6),
+            _MetaRow(
+              icon: Icons.schedule_outlined,
+              label: timeLabel,
+              fontSize: bodySize,
+              iconSize: 14,
+            ),
           ],
-          const SizedBox(height: 8),
-          _MetaRow(icon: Icons.timelapse_outlined, label: countdown),
+          const SizedBox(height: 6),
+          _MetaRow(
+            icon: Icons.timelapse_outlined,
+            label: countdown,
+            fontSize: bodySize,
+            iconSize: 14,
+          ),
           if (session.isLiveNow) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             Text(
               'Join',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: context.colors.ink,
+                fontSize: sectionSize,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               'Watch in the app, or join Zoom for the interactive meeting.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: context.colors.mutedInk,
+                fontSize: hintSize,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             _JoinButton(
               label: 'Watch on YouTube',
               subtitle: 'Plays in this app',
@@ -388,7 +424,7 @@ class _LiveSessionCard extends StatelessWidget {
                   ? onWatchYouTube
                   : null,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             _JoinButton(
               label: 'Join Zoom Meeting',
               subtitle: 'Opens the Zoom app',
@@ -537,7 +573,7 @@ class _RecentRecordingCard extends StatelessWidget {
                             : recording.title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: context.colors.ink,
-                          fontSize: 15,
+                          fontSize: 13.5,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -665,22 +701,31 @@ class _JoinButton extends StatelessWidget {
 }
 
 class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.icon, required this.label});
+  const _MetaRow({
+    required this.icon,
+    required this.label,
+    this.fontSize,
+    this.iconSize = 18,
+  });
 
   final IconData icon;
   final String label;
+  final double? fontSize;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: context.colors.mutedInk),
-        const SizedBox(width: 10),
+        Icon(icon, size: iconSize, color: context.colors.mutedInk),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: context.colors.ink,
+                  fontSize: fontSize,
+                  height: 1.25,
                 ),
           ),
         ),
