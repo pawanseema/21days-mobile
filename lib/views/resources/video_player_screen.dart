@@ -151,7 +151,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       return;
     }
-    _controller?.seekTo(Duration(seconds: chapter.startSeconds));
+    final controller = _controller;
+    if (controller == null) return;
+    final at = Duration(seconds: chapter.startSeconds);
+    // Ensure the player is active before seeking (paused WebViews ignore seeks).
+    if (!controller.value.isPlaying) {
+      controller.play();
+    }
+    controller.seekTo(at);
   }
 
   @override
@@ -271,7 +278,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        body: ListView(
+        body: Column(
           children: [
             AspectRatio(
               aspectRatio: 16 / 9,
@@ -293,7 +300,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         ),
                       )),
             ),
-            details,
+            Expanded(
+              child: ListView(
+                children: [details],
+              ),
+            ),
           ],
         ),
       );
@@ -347,8 +358,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          body: ListView(
-            children: [player, details],
+          // Keep the player pinned so scrolling chapters/details does not
+          // detach the WebView (which pauses playback and breaks seekTo).
+          body: Column(
+            children: [
+              player,
+              Expanded(
+                child: ListView(
+                  children: [details],
+                ),
+              ),
+            ],
           ),
         );
       },
