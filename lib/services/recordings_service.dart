@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/year_recordings.dart';
+import '../utils/api_retry.dart';
 import '../utils/constants.dart';
 
 /// Fetches year playlist recordings from media-resources.
@@ -17,7 +18,14 @@ class RecordingsService {
   final String baseUrl;
 
   /// GET `/api/recordings` — latest year, sessions sliced oldest-first.
-  Future<YearRecordings> fetchYearRecordings() async {
+  Future<YearRecordings> fetchYearRecordings({ApiOnRetry? onRetry}) {
+    return runWithRetries(
+      () => _fetchYearRecordingsOnce(),
+      onRetry: onRetry,
+    );
+  }
+
+  Future<YearRecordings> _fetchYearRecordingsOnce() async {
     final uri = Uri.parse('$baseUrl${AppConstants.recordingsPath}');
     late final http.Response response;
     try {
@@ -28,25 +36,31 @@ class RecordingsService {
           )
           .timeout(const Duration(seconds: 60));
     } on Exception catch (e) {
-      throw RecordingsException(
-        'Cannot reach recordings API at $uri. '
-        'Is the backend running? ($e)',
+      throw ApiHttpException(
+        'Cannot reach recordings API at $uri ($e)',
+        retryable: true,
       );
     }
 
     if (response.statusCode != 200) {
-      throw RecordingsException(
+      throw ApiHttpException(
         'Recordings API fetch failed (${response.statusCode}): ${response.body}',
+        retryable: isRetryableStatusCode(response.statusCode),
+        statusCode: response.statusCode,
       );
     }
 
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw RecordingsException('Unexpected recordings API response shape.');
+      throw ApiHttpException(
+        'Unexpected recordings API response shape.',
+        retryable: false,
+      );
     }
     if (decoded.containsKey('error')) {
-      throw RecordingsException(
+      throw ApiHttpException(
         decoded['message']?.toString() ?? decoded['error'].toString(),
+        retryable: false,
       );
     }
     return YearRecordings.fromJson(decoded);
@@ -61,12 +75,4 @@ class RecordingsService {
   }
 
   void dispose() => _client.close();
-}
-
-class RecordingsException implements Exception {
-  RecordingsException(this.message);
-  final String message;
-
-  @override
-  String toString() => 'RecordingsException: $message';
 }

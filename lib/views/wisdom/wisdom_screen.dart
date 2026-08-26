@@ -40,7 +40,25 @@ class _WisdomScreenState extends State<WisdomScreen> {
     final topics = state.topics;
 
     if (state.isLoading || !state.hasAttemptedLoad) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              if (state.loadingHint != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  state.loadingHint!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     return RefreshIndicator(

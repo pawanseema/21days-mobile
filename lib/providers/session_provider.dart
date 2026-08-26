@@ -5,6 +5,7 @@ import '../models/recent_recording.dart';
 import '../models/session_model.dart';
 import '../services/notification_service.dart';
 import '../services/session_service.dart';
+import '../utils/api_messages.dart';
 
 /// Live session dashboard state + reminder scheduling + recent recordings.
 class SessionProvider extends ChangeNotifier {
@@ -27,6 +28,7 @@ class SessionProvider extends ChangeNotifier {
   LiveSession? _session;
   List<RecentRecording> _recent = const [];
   bool _loading = true;
+  String? _loadingHint;
   String? _error;
   String? _recentError;
   bool _remindersScheduled = false;
@@ -36,6 +38,7 @@ class SessionProvider extends ChangeNotifier {
   LiveSession? get nextSession => _session;
   List<RecentRecording> get recentRecordings => _recent;
   bool get isLoading => _loading;
+  String? get loadingHint => _loadingHint;
   String? get error => _error;
   String? get recentError => _recentError;
   bool get remindersScheduled => _remindersScheduled;
@@ -45,8 +48,14 @@ class SessionProvider extends ChangeNotifier {
   Future<SharedPreferences> _prefs() async =>
       _prefsOverride ?? SharedPreferences.getInstance();
 
+  void _markRetrying() {
+    _loadingHint = ApiMessages.retrying;
+    notifyListeners();
+  }
+
   Future<void> refresh() async {
     _loading = true;
+    _loadingHint = null;
     _error = null;
     _recentError = null;
     notifyListeners();
@@ -54,17 +63,18 @@ class SessionProvider extends ChangeNotifier {
     // Live and recent are independent YouTube lookups. A 503 on one must not
     // skip or wipe the other — that left Recent empty after a Live retry.
     try {
-      _session = await _sessionService.fetchNextSession();
+      _session = await _sessionService.fetchNextSession(onRetry: _markRetrying);
     } catch (e) {
       debugPrint('SessionProvider session fetch failed: $e');
-      _error = _errorText(e);
+      _error = ApiMessages.requestFailed;
     }
 
     try {
-      _recent = await _sessionService.fetchRecentRecordings();
+      _recent =
+          await _sessionService.fetchRecentRecordings(onRetry: _markRetrying);
     } catch (e) {
       debugPrint('SessionProvider recent fetch failed: $e');
-      _recentError = _errorText(e);
+      _recentError = ApiMessages.requestFailed;
     }
 
     try {
@@ -74,13 +84,8 @@ class SessionProvider extends ChangeNotifier {
     }
 
     _loading = false;
+    _loadingHint = null;
     notifyListeners();
-  }
-
-  static String _errorText(Object error) {
-    final text = error.toString();
-    const prefix = 'SessionException: ';
-    return text.startsWith(prefix) ? text.substring(prefix.length) : text;
   }
 
   Future<void> openFromReminder() async {

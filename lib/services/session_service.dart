@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/recent_recording.dart';
 import '../models/session_model.dart';
+import '../utils/api_retry.dart';
 import '../utils/constants.dart';
 
 /// Fetches live / upcoming session and recent recordings from media-resources.
@@ -21,23 +22,29 @@ class SessionService {
   ///
   /// Returns `null` when the backend has no live or soon-upcoming broadcast
   /// (`session: null`).
-  Future<LiveSession?> fetchNextSession() async {
-    final decoded = await _getJson(AppConstants.liveSessionsPath);
+  Future<LiveSession?> fetchNextSession({ApiOnRetry? onRetry}) async {
+    final decoded = await _getJson(AppConstants.liveSessionsPath, onRetry: onRetry);
     final sessionJson = decoded['session'];
     if (sessionJson == null) return null;
     if (sessionJson is! Map<String, dynamic>) {
-      throw SessionException('Unexpected session object in API response.');
+      throw ApiHttpException(
+        'Unexpected session object in API response.',
+        retryable: false,
+      );
     }
     return LiveSession.fromJson(sessionJson);
   }
 
   /// GET `/api/live/recent` — at most one completed stream per channel (≤72h).
-  Future<List<RecentRecording>> fetchRecentRecordings() async {
-    final decoded = await _getJson(AppConstants.liveRecentPath);
+  Future<List<RecentRecording>> fetchRecentRecordings({ApiOnRetry? onRetry}) async {
+    final decoded = await _getJson(AppConstants.liveRecentPath, onRetry: onRetry);
     final items = decoded['items'];
     if (items == null) return const [];
     if (items is! List) {
-      throw SessionException('Unexpected recent recordings response shape.');
+      throw ApiHttpException(
+        'Unexpected recent recordings response shape.',
+        retryable: false,
+      );
     }
     return items
         .whereType<Map<String, dynamic>>()
@@ -46,18 +53,14 @@ class SessionService {
         .toList(growable: false);
   }
 
-  Future<Map<String, dynamic>> _getJson(String path) async {
-    SessionException? lastError;
-    for (var attempt = 0; attempt < 2; attempt++) {
-      try {
-        return await _getJsonOnce(path);
-      } on SessionException catch (e) {
-        lastError = e;
-        if (!_isRetryable(e) || attempt == 1) rethrow;
-        await Future<void>.delayed(const Duration(milliseconds: 400));
-      }
-    }
-    throw lastError!;
+  Future<Map<String, dynamic>> _getJson(
+    String path, {
+    ApiOnRetry? onRetry,
+  }) {
+    return runWithRetries(
+      () => _getJsonOnce(path),
+      onRetry: onRetry,
+    );
   }
 
   Future<Map<String, dynamic>> _getJsonOnce(String path) async {
@@ -71,35 +74,34 @@ class SessionService {
           )
           .timeout(const Duration(seconds: 90));
     } on Exception catch (e) {
-      throw SessionException(
-        'Cannot reach live API at $uri. '
-        'Is the backend running? ($e)',
+      throw ApiHttpException(
+        'Cannot reach live API at $uri ($e)',
+        retryable: true,
       );
     }
 
     if (response.statusCode != 200) {
-      throw SessionException(_apiErrorMessage(response));
+      throw ApiHttpException(
+        _apiErrorMessage(response),
+        retryable: isRetryableStatusCode(response.statusCode),
+        statusCode: response.statusCode,
+      );
     }
 
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw SessionException('Unexpected live API response shape.');
+      throw ApiHttpException(
+        'Unexpected live API response shape.',
+        retryable: false,
+      );
     }
     if (decoded.containsKey('error')) {
-      throw SessionException(
+      throw ApiHttpException(
         decoded['message']?.toString() ?? decoded['error'].toString(),
+        retryable: false,
       );
     }
     return decoded;
-  }
-
-  static bool _isRetryable(SessionException error) {
-    final text = error.message.toLowerCase();
-    if (text.contains('quota')) return false;
-    return text.contains('temporarily unavailable') ||
-        text.contains('(503)') ||
-        text.contains('timed out') ||
-        text.contains('timeout');
   }
 
   static String _apiErrorMessage(http.Response response) {
@@ -131,12 +133,4 @@ class SessionService {
   }
 
   void dispose() => _client.close();
-}
-
-class SessionException implements Exception {
-  SessionException(this.message);
-  final String message;
-
-  @override
-  String toString() => 'SessionException: $message';
 }

@@ -26,7 +26,7 @@ class LiveScreen extends StatelessWidget {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open $trimmed')),
+          const SnackBar(content: Text("Couldn't open that link.")),
         );
       }
     }
@@ -92,7 +92,25 @@ class LiveScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     if (sessionState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              if (sessionState.loadingHint != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  sessionState.loadingHint!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     final session = sessionState.session;
@@ -108,7 +126,6 @@ class LiveScreen extends StatelessWidget {
         children: [
           if (loadError != null) ...[
             _LiveLoadErrorBanner(
-              title: 'Could not reach live sessions',
               message: loadError,
               onRetry: sessionState.refresh,
             ),
@@ -144,7 +161,6 @@ class LiveScreen extends StatelessWidget {
           const SizedBox(height: 14),
           if (recentError != null && recent.isEmpty)
             _LiveLoadErrorBanner(
-              title: 'Could not load recent sessions',
               message: recentError,
               onRetry: sessionState.refresh,
             )
@@ -161,7 +177,6 @@ class LiveScreen extends StatelessWidget {
           else ...[
             if (recentError != null) ...[
               _LiveLoadErrorBanner(
-                title: 'Could not refresh recent sessions',
                 message: recentError,
                 onRetry: sessionState.refresh,
               ),
@@ -182,12 +197,10 @@ class LiveScreen extends StatelessWidget {
 
 class _LiveLoadErrorBanner extends StatelessWidget {
   const _LiveLoadErrorBanner({
-    required this.title,
     required this.message,
     required this.onRetry,
   });
 
-  final String title;
   final String message;
   final VoidCallback onRetry;
 
@@ -206,17 +219,8 @@ class _LiveLoadErrorBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: context.colors.ink,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
             message,
             style: theme.textTheme.bodyMedium,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(

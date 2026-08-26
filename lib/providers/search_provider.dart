@@ -4,6 +4,7 @@ import '../models/handout_model.dart';
 import '../models/recording_model.dart';
 import '../models/ui_config_model.dart';
 import '../services/search_service.dart';
+import '../utils/api_messages.dart';
 
 enum ResourceTab { videos, handouts }
 
@@ -29,6 +30,7 @@ class SearchProvider extends ChangeNotifier {
   List<HandoutResult> _handoutResults = const [];
   bool _loading = false;
   bool _findingRelated = false;
+  String? _loadingHint;
   String? _error;
   UiConfig _uiConfig = const UiConfig();
 
@@ -85,9 +87,15 @@ class SearchProvider extends ChangeNotifier {
         ];
 
   String get loadingMessage {
+    if (_loadingHint != null) return _loadingHint!;
     if (_tab == ResourceTab.handouts) return 'Searching handouts…';
     if (_findingRelated) return 'Finding similar clips…';
     return 'Searching for relevant videos…';
+  }
+
+  void _markRetrying() {
+    _loadingHint = ApiMessages.retrying;
+    notifyListeners();
   }
 
   bool showFindSimilarOn(RecordingResult result) {
@@ -114,6 +122,7 @@ class SearchProvider extends ChangeNotifier {
     _handoutResults = const [];
     _error = null;
     _loading = false;
+    _loadingHint = null;
     _clearRelatedState();
     notifyListeners();
   }
@@ -125,36 +134,46 @@ class SearchProvider extends ChangeNotifier {
       _videoResults = const [];
       _handoutResults = const [];
       _error = null;
+      _loadingHint = null;
       _clearRelatedState();
       notifyListeners();
       return;
     }
 
     _loading = true;
+    _loadingHint = null;
     _error = null;
     _clearRelatedState();
     notifyListeners();
 
     try {
       if (_tab == ResourceTab.videos) {
-        final response = await _searchService.searchVideos(query: trimmed);
+        final response = await _searchService.searchVideos(
+          query: trimmed,
+          onRetry: _markRetrying,
+        );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
         _videoResults = sorted;
         _handoutResults = const [];
       } else {
-        final response = await _searchService.searchHandouts(query: trimmed);
+        final response = await _searchService.searchHandouts(
+          query: trimmed,
+          onRetry: _markRetrying,
+        );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
         _handoutResults = sorted;
         _videoResults = const [];
       }
     } catch (e) {
-      _error = e.toString();
+      debugPrint('SearchProvider search failed: $e');
+      _error = ApiMessages.requestFailed;
       _videoResults = const [];
       _handoutResults = const [];
     } finally {
       _loading = false;
+      _loadingHint = null;
       notifyListeners();
     }
   }
@@ -170,8 +189,7 @@ class SearchProvider extends ChangeNotifier {
   Future<void> findSimilarClips(RecordingResult seed) async {
     if (!enableMoreLikeThis) return;
     if (!seed.canRequestRelated) {
-      _error =
-          'Cannot find related clips for this result (missing video id or timestamp).';
+      _error = "Couldn't find similar clips for this result.";
       notifyListeners();
       return;
     }
@@ -183,11 +201,15 @@ class SearchProvider extends ChangeNotifier {
 
     _loading = true;
     _findingRelated = true;
+    _loadingHint = null;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _searchService.fetchRelatedVideos(seed: seed);
+      final response = await _searchService.fetchRelatedVideos(
+        seed: seed,
+        onRetry: _markRetrying,
+      );
       _relatedViewActive = true;
       _relatedSeed = response.seed ?? seed;
       _engagedSeed = null;
@@ -198,10 +220,12 @@ class SearchProvider extends ChangeNotifier {
         _error = 'No similar segments found.';
       }
     } catch (e) {
-      _error = e.toString();
+      debugPrint('SearchProvider findSimilarClips failed: $e');
+      _error = ApiMessages.requestFailed;
     } finally {
       _loading = false;
       _findingRelated = false;
+      _loadingHint = null;
       notifyListeners();
     }
   }
@@ -226,6 +250,7 @@ class SearchProvider extends ChangeNotifier {
     _videoResults = const [];
     _handoutResults = const [];
     _error = null;
+    _loadingHint = null;
     _clearRelatedState();
     notifyListeners();
   }

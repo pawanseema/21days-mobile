@@ -45,7 +45,25 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
     final theme = Theme.of(context);
 
     if (state.isLoading || !state.hasAttemptedLoad) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              if (state.loadingHint != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  state.loadingHint!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     if (state.error != null && state.year == null) {
@@ -55,12 +73,6 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Unable to load recordings',
-                style: theme.textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
               Text(
                 state.error!,
                 style: theme.textTheme.bodyMedium,

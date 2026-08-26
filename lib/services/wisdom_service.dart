@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/wisdom_topic.dart';
+import '../utils/api_retry.dart';
 import '../utils/constants.dart';
 
 /// Fetches shared Wisdom topics from media-resources.
@@ -17,7 +18,14 @@ class WisdomService {
   final String baseUrl;
 
   /// GET `/api/wisdom/topics`.
-  Future<WisdomTopicsResponse> fetchTopics() async {
+  Future<WisdomTopicsResponse> fetchTopics({ApiOnRetry? onRetry}) {
+    return runWithRetries(
+      () => _fetchTopicsOnce(),
+      onRetry: onRetry,
+    );
+  }
+
+  Future<WisdomTopicsResponse> _fetchTopicsOnce() async {
     final uri = Uri.parse('$baseUrl${AppConstants.wisdomTopicsPath}');
     late final http.Response response;
     try {
@@ -25,25 +33,31 @@ class WisdomService {
           .get(uri, headers: const {'Accept': 'application/json'})
           .timeout(const Duration(seconds: 20));
     } on Exception catch (e) {
-      throw WisdomException(
-        'Cannot reach wisdom API at $uri. '
-        'Is the backend running? ($e)',
+      throw ApiHttpException(
+        'Cannot reach wisdom API at $uri ($e)',
+        retryable: true,
       );
     }
 
     if (response.statusCode != 200) {
-      throw WisdomException(
+      throw ApiHttpException(
         'Wisdom API fetch failed (${response.statusCode}): ${response.body}',
+        retryable: isRetryableStatusCode(response.statusCode),
+        statusCode: response.statusCode,
       );
     }
 
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw WisdomException('Unexpected wisdom API response shape.');
+      throw ApiHttpException(
+        'Unexpected wisdom API response shape.',
+        retryable: false,
+      );
     }
     if (decoded.containsKey('error')) {
-      throw WisdomException(
+      throw ApiHttpException(
         decoded['message']?.toString() ?? decoded['error'].toString(),
+        retryable: false,
       );
     }
     return WisdomTopicsResponse.fromJson(decoded);
@@ -58,12 +72,4 @@ class WisdomService {
   }
 
   void dispose() => _client.close();
-}
-
-class WisdomException implements Exception {
-  WisdomException(this.message);
-  final String message;
-
-  @override
-  String toString() => 'WisdomException: $message';
 }

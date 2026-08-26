@@ -93,7 +93,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not open ${item.downloadUrl}')),
+        const SnackBar(content: Text("Couldn't open that link.")),
       );
     }
   }
@@ -374,7 +374,28 @@ class _ResultsPane extends StatelessWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(search.error!, textAlign: TextAlign.center),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                search.error!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 18),
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (search.relatedViewActive && search.relatedSeed != null) {
+                    search.findSimilarClips(search.relatedSeed!);
+                  } else {
+                    search.search(search.query);
+                  }
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }

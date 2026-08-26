@@ -6,6 +6,7 @@ import '../models/handout_model.dart';
 import '../models/recording_model.dart';
 import '../models/ui_config_model.dart';
 import '../models/video_chapter.dart';
+import '../utils/api_retry.dart';
 import '../utils/constants.dart';
 
 /// Client for the 21days-media-resources semantic search APIs.
@@ -48,6 +49,7 @@ class SearchService {
   Future<SearchResponse> searchVideos({
     required String query,
     int topK = 8,
+    ApiOnRetry? onRetry,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -58,6 +60,7 @@ class SearchService {
       path: AppConstants.searchPath,
       payload: {'query': trimmed, 'top_k': topK},
       label: 'video search',
+      onRetry: onRetry,
     );
     return SearchResponse.fromJson(body);
   }
@@ -66,13 +69,15 @@ class SearchService {
   Future<SearchResponse> searchRecordings({
     required String query,
     int topK = 8,
+    ApiOnRetry? onRetry,
   }) =>
-      searchVideos(query: query, topK: topK);
+      searchVideos(query: query, topK: topK, onRetry: onRetry);
 
   /// POST `/api/resources/search` — handout / document search.
   Future<HandoutSearchResponse> searchHandouts({
     required String query,
     int topK = 8,
+    ApiOnRetry? onRetry,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -83,6 +88,7 @@ class SearchService {
       path: AppConstants.resourceSearchPath,
       payload: {'query': trimmed, 'top_k': topK},
       label: 'handout search',
+      onRetry: onRetry,
     );
     return HandoutSearchResponse.fromJson(body);
   }
@@ -91,6 +97,7 @@ class SearchService {
   Future<RelatedVideosResponse> fetchRelatedVideos({
     required RecordingResult seed,
     int topK = 5,
+    ApiOnRetry? onRetry,
   }) async {
     if (!seed.canRequestRelated) {
       throw SearchException(
@@ -115,6 +122,7 @@ class SearchService {
       path: AppConstants.relatedVideosPath,
       payload: payload,
       label: 'related videos',
+      onRetry: onRetry,
     );
     return RelatedVideosResponse.fromJson(body, fallbackSeed: seed);
   }
@@ -155,6 +163,18 @@ class SearchService {
     required String path,
     required Map<String, dynamic> payload,
     required String label,
+    ApiOnRetry? onRetry,
+  }) {
+    return runWithRetries(
+      () => _postJsonOnce(path: path, payload: payload, label: label),
+      onRetry: onRetry,
+    );
+  }
+
+  Future<Map<String, dynamic>> _postJsonOnce({
+    required String path,
+    required Map<String, dynamic> payload,
+    required String label,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
     late final http.Response response;
@@ -170,25 +190,31 @@ class SearchService {
           )
           .timeout(const Duration(seconds: 60));
     } on Exception catch (e) {
-      throw SearchException(
-        'Cannot reach $label API at $uri. '
-        'Is Flask running, or is API_BASE_URL set? ($e)',
+      throw ApiHttpException(
+        'Cannot reach $label API at $uri ($e)',
+        retryable: true,
       );
     }
 
     if (response.statusCode != 200) {
-      throw SearchException(
+      throw ApiHttpException(
         '$label failed (${response.statusCode}): ${response.body}',
+        retryable: isRetryableStatusCode(response.statusCode),
+        statusCode: response.statusCode,
       );
     }
 
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw SearchException('Unexpected $label response shape.');
+      throw ApiHttpException(
+        'Unexpected $label response shape.',
+        retryable: false,
+      );
     }
     if (decoded.containsKey('error')) {
-      throw SearchException(
+      throw ApiHttpException(
         decoded['message']?.toString() ?? decoded['error'].toString(),
+        retryable: false,
       );
     }
     return decoded;
