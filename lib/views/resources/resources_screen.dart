@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -7,6 +8,7 @@ import '../../models/recording_model.dart';
 import '../../providers/search_provider.dart';
 import '../../theme/app_theme.dart';
 import 'handout_result_card.dart';
+import 'handout_viewer_screen.dart';
 import 'video_player_screen.dart';
 import 'video_result_card.dart';
 
@@ -89,13 +91,25 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
       );
       return;
     }
-    final uri = Uri.parse(item.downloadUrl);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't open that link.")),
-      );
+
+    // Desktop/web Explore stays external; Flutter web also opens externally.
+    if (kIsWeb) {
+      final uri = Uri.parse(item.downloadUrl);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't open that link.")),
+        );
+      }
+      return;
     }
+
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => HandoutViewerScreen(handout: item),
+      ),
+    );
   }
 
   @override
@@ -232,7 +246,7 @@ class _ModeButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(10),
@@ -244,10 +258,10 @@ class _ModeButton extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.labelLarge?.copyWith(
               color: context.colors.ink,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              fontSize: 16,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              fontSize: 13,
             ),
           ),
         ),
