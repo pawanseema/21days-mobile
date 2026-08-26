@@ -40,7 +40,7 @@ class SearchService {
         return UiConfig.fromJson(decoded);
       }
     } catch (_) {
-      // Defaults match local Flask when config is unreachable.
+      // Production-safe defaults when config is unreachable.
     }
     return const UiConfig();
   }
