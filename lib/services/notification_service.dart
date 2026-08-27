@@ -21,8 +21,31 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
 
+  /// Cold-start launch from a notification (consumed by [takeLaunchPayload]).
+  bool _launchedFromNotification = false;
+  String? _launchPayload;
+
+  /// Tap arrived before the UI binder registered [onNotificationOpened].
+  bool _hasPendingOpen = false;
+  String? _pendingOpenPayload;
+
+  void Function(String? payload)? _onNotificationOpened;
+
   /// Invoked when the user taps a notification (app in foreground/background).
-  void Function(String? payload)? onNotificationOpened;
+  ///
+  /// Setting this flushes any tap that arrived during early plugin init.
+  set onNotificationOpened(void Function(String? payload)? callback) {
+    _onNotificationOpened = callback;
+    if (callback != null && _hasPendingOpen) {
+      _hasPendingOpen = false;
+      final payload = _pendingOpenPayload;
+      _pendingOpenPayload = null;
+      callback(payload);
+    }
+  }
+
+  void Function(String? payload)? get onNotificationOpened =>
+      _onNotificationOpened;
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'live_session_reminders',
@@ -32,6 +55,9 @@ class NotificationService {
   );
 
   bool get isInitialized => _initialized;
+
+  /// True once when the process was started by tapping a reminder notification.
+  bool get launchedFromNotification => _launchedFromNotification;
 
   /// Bootstrap timezone + notification plugin. Safe to call multiple times.
   Future<void> initialize() async {
@@ -63,26 +89,59 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
+    // Capture cold-start launch details before the UI mounts. On some iOS
+    // versions payload may be null even when the tap launched the app.
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp == true) {
+      _launchedFromNotification = true;
+      final raw = details?.notificationResponse?.payload;
+      _launchPayload = (raw == null || raw.isEmpty) ? liveDeepLinkPayload : raw;
+    }
+
     _initialized = true;
   }
 
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-    onNotificationOpened?.call(response.payload);
+    final payload = (response.payload == null || response.payload!.isEmpty)
+        ? liveDeepLinkPayload
+        : response.payload;
+    final callback = _onNotificationOpened;
+    if (callback != null) {
+      callback(payload);
+      return;
+    }
+    // Plugin may deliver the tap during initialize() before the binder exists.
+    _hasPendingOpen = true;
+    _pendingOpenPayload = payload;
   }
 
   /// If the app was launched from a notification tap (killed → opened), return
   /// that payload once. Call after UI is ready to navigate.
+  ///
+  /// Always returns a non-null payload when [didNotificationLaunchApp] was true,
+  /// even if the OS omitted the payload string (defaults to [liveDeepLinkPayload]).
   Future<String?> takeLaunchPayload() async {
     if (!_initialized) {
       await initialize();
     }
-    final details = await _plugin.getNotificationAppLaunchDetails();
-    if (details?.didNotificationLaunchApp != true) return null;
-    return details!.notificationResponse?.payload;
+    if (!_launchedFromNotification) {
+      // Re-check in case initialize ran before the OS attached launch details.
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details?.didNotificationLaunchApp != true) return null;
+      _launchedFromNotification = true;
+      final raw = details?.notificationResponse?.payload;
+      _launchPayload =
+          (raw == null || raw.isEmpty) ? liveDeepLinkPayload : raw;
+    }
+
+    _launchedFromNotification = false;
+    final payload = _launchPayload ?? liveDeepLinkPayload;
+    _launchPayload = null;
+    return payload;
   }
 
-  /// Whether [payload] should open the Live tab.
+  /// Whether [payload] should open the Live / Upcoming tab.
   static bool isLiveDeepLink(String? payload) {
     if (payload == null || payload.isEmpty) return true;
     return payload == liveDeepLinkPayload || payload.startsWith('navigate:live');
@@ -137,7 +196,7 @@ class NotificationService {
     await _plugin.zonedSchedule(
       id,
       'Live session starting soon',
-      '$title begins in $reminderMinutesBefore minutes. Tap to open Live.',
+      '$title begins in $reminderMinutesBefore minutes. Tap to open Upcoming.',
       tz.TZDateTime.from(when, tz.local),
       NotificationDetails(
         android: AndroidNotificationDetails(

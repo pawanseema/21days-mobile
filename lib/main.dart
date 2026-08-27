@@ -64,7 +64,14 @@ class TwentyOneDaysApp extends StatelessWidget {
             authService: AuthService(useMockBackend: useMockAuth),
           )..restoreSession(),
         ),
-        ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(
+          create: (_) => NavigationProvider(
+            // Cold-start from a reminder: land on Upcoming on the first frame.
+            initialIndex: notificationService.launchedFromNotification
+                ? NavigationProvider.liveTabIndex
+                : NavigationProvider.exploreTabIndex,
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(
           create: (_) => SessionProvider(

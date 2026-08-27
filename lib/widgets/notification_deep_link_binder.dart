@@ -21,6 +21,7 @@ class _NotificationDeepLinkBinderState
     extends State<NotificationDeepLinkBinder> {
   bool _pendingOpenLive = false;
   bool _bound = false;
+  bool _handledLaunch = false;
 
   @override
   void didChangeDependencies() {
@@ -35,9 +36,11 @@ class _NotificationDeepLinkBinderState
   }
 
   Future<void> _consumeLaunchPayload() async {
+    if (_handledLaunch) return;
     final notifications = context.read<SessionProvider>().notifications;
     final payload = await notifications.takeLaunchPayload();
     if (!mounted || payload == null) return;
+    _handledLaunch = true;
     _onNotificationOpened(payload);
   }
 
