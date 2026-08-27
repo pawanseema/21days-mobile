@@ -18,10 +18,14 @@ class RecordingsService {
   final String baseUrl;
 
   /// GET `/api/recordings` — latest year, sessions sliced oldest-first.
-  Future<YearRecordings> fetchYearRecordings({ApiOnRetry? onRetry}) {
+  Future<YearRecordings> fetchYearRecordings({
+    ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
+  }) {
     return runWithRetries(
       () => _fetchYearRecordingsOnce(),
       onRetry: onRetry,
+      onSlow: onSlow,
     );
   }
 

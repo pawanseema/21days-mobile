@@ -49,6 +49,11 @@ class WisdomProvider extends ChangeNotifier {
           _loadingHint = ApiMessages.retrying;
           notifyListeners();
         },
+        onSlow: () {
+          if (_loadingHint == ApiMessages.retrying) return;
+          _loadingHint = ApiMessages.takingLonger;
+          notifyListeners();
+        },
       );
       _payload = fetched.topics.isEmpty
           ? WisdomTopicsResponse(

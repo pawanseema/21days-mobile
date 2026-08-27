@@ -48,6 +48,13 @@ class SessionProvider extends ChangeNotifier {
   Future<SharedPreferences> _prefs() async =>
       _prefsOverride ?? SharedPreferences.getInstance();
 
+  void _markSlow() {
+    // Don't downgrade the two-line retry copy if a retry already started.
+    if (_loadingHint == ApiMessages.retrying) return;
+    _loadingHint = ApiMessages.takingLonger;
+    notifyListeners();
+  }
+
   void _markRetrying() {
     _loadingHint = ApiMessages.retrying;
     notifyListeners();
@@ -63,15 +70,20 @@ class SessionProvider extends ChangeNotifier {
     // Live and recent are independent YouTube lookups. A 503 on one must not
     // skip or wipe the other — that left Recent empty after a Live retry.
     try {
-      _session = await _sessionService.fetchNextSession(onRetry: _markRetrying);
+      _session = await _sessionService.fetchNextSession(
+        onRetry: _markRetrying,
+        onSlow: _markSlow,
+      );
     } catch (e) {
       debugPrint('SessionProvider session fetch failed: $e');
       _error = ApiMessages.requestFailed;
     }
 
     try {
-      _recent =
-          await _sessionService.fetchRecentRecordings(onRetry: _markRetrying);
+      _recent = await _sessionService.fetchRecentRecordings(
+        onRetry: _markRetrying,
+        onSlow: _markSlow,
+      );
     } catch (e) {
       debugPrint('SessionProvider recent fetch failed: $e');
       _recentError = ApiMessages.requestFailed;

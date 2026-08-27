@@ -50,6 +50,7 @@ class SearchService {
     required String query,
     int topK = 8,
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -61,6 +62,7 @@ class SearchService {
       payload: {'query': trimmed, 'top_k': topK},
       label: 'video search',
       onRetry: onRetry,
+      onSlow: onSlow,
     );
     return SearchResponse.fromJson(body);
   }
@@ -70,14 +72,21 @@ class SearchService {
     required String query,
     int topK = 8,
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) =>
-      searchVideos(query: query, topK: topK, onRetry: onRetry);
+      searchVideos(
+        query: query,
+        topK: topK,
+        onRetry: onRetry,
+        onSlow: onSlow,
+      );
 
   /// POST `/api/resources/search` — handout / document search.
   Future<HandoutSearchResponse> searchHandouts({
     required String query,
     int topK = 8,
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -89,6 +98,7 @@ class SearchService {
       payload: {'query': trimmed, 'top_k': topK},
       label: 'handout search',
       onRetry: onRetry,
+      onSlow: onSlow,
     );
     return HandoutSearchResponse.fromJson(body);
   }
@@ -98,6 +108,7 @@ class SearchService {
     required RecordingResult seed,
     int topK = 5,
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) async {
     if (!seed.canRequestRelated) {
       throw SearchException(
@@ -123,6 +134,7 @@ class SearchService {
       payload: payload,
       label: 'related videos',
       onRetry: onRetry,
+      onSlow: onSlow,
     );
     return RelatedVideosResponse.fromJson(body, fallbackSeed: seed);
   }
@@ -164,10 +176,12 @@ class SearchService {
     required Map<String, dynamic> payload,
     required String label,
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) {
     return runWithRetries(
       () => _postJsonOnce(path: path, payload: payload, label: label),
       onRetry: onRetry,
+      onSlow: onSlow,
     );
   }
 

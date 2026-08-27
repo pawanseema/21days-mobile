@@ -381,7 +381,11 @@ class _ResultsPane extends StatelessWidget {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 14),
-            Text(search.loadingMessage, style: theme.textTheme.bodyMedium),
+            Text(
+              search.loadingMessage,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
           ],
         ),
       );

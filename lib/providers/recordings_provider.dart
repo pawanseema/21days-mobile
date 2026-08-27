@@ -45,6 +45,11 @@ class RecordingsProvider extends ChangeNotifier {
           _loadingHint = ApiMessages.retrying;
           notifyListeners();
         },
+        onSlow: () {
+          if (_loadingHint == ApiMessages.retrying) return;
+          _loadingHint = ApiMessages.takingLonger;
+          notifyListeners();
+        },
       );
     } catch (e) {
       debugPrint('RecordingsProvider refresh failed: $e');

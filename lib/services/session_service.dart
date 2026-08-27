@@ -22,8 +22,15 @@ class SessionService {
   ///
   /// Returns `null` when the backend has no live or soon-upcoming broadcast
   /// (`session: null`).
-  Future<LiveSession?> fetchNextSession({ApiOnRetry? onRetry}) async {
-    final decoded = await _getJson(AppConstants.liveSessionsPath, onRetry: onRetry);
+  Future<LiveSession?> fetchNextSession({
+    ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
+  }) async {
+    final decoded = await _getJson(
+      AppConstants.liveSessionsPath,
+      onRetry: onRetry,
+      onSlow: onSlow,
+    );
     final sessionJson = decoded['session'];
     if (sessionJson == null) return null;
     if (sessionJson is! Map<String, dynamic>) {
@@ -36,8 +43,15 @@ class SessionService {
   }
 
   /// GET `/api/live/recent` — at most one completed stream per channel (≤72h).
-  Future<List<RecentRecording>> fetchRecentRecordings({ApiOnRetry? onRetry}) async {
-    final decoded = await _getJson(AppConstants.liveRecentPath, onRetry: onRetry);
+  Future<List<RecentRecording>> fetchRecentRecordings({
+    ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
+  }) async {
+    final decoded = await _getJson(
+      AppConstants.liveRecentPath,
+      onRetry: onRetry,
+      onSlow: onSlow,
+    );
     final items = decoded['items'];
     if (items == null) return const [];
     if (items is! List) {
@@ -56,10 +70,12 @@ class SessionService {
   Future<Map<String, dynamic>> _getJson(
     String path, {
     ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
   }) {
     return runWithRetries(
       () => _getJsonOnce(path),
       onRetry: onRetry,
+      onSlow: onSlow,
     );
   }
 

@@ -93,6 +93,12 @@ class SearchProvider extends ChangeNotifier {
     return 'Searching for relevant videos…';
   }
 
+  void _markSlow() {
+    if (_loadingHint == ApiMessages.retrying) return;
+    _loadingHint = ApiMessages.takingLonger;
+    notifyListeners();
+  }
+
   void _markRetrying() {
     _loadingHint = ApiMessages.retrying;
     notifyListeners();
@@ -151,6 +157,7 @@ class SearchProvider extends ChangeNotifier {
         final response = await _searchService.searchVideos(
           query: trimmed,
           onRetry: _markRetrying,
+          onSlow: _markSlow,
         );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
@@ -160,6 +167,7 @@ class SearchProvider extends ChangeNotifier {
         final response = await _searchService.searchHandouts(
           query: trimmed,
           onRetry: _markRetrying,
+          onSlow: _markSlow,
         );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
@@ -209,6 +217,7 @@ class SearchProvider extends ChangeNotifier {
       final response = await _searchService.fetchRelatedVideos(
         seed: seed,
         onRetry: _markRetrying,
+        onSlow: _markSlow,
       );
       _relatedViewActive = true;
       _relatedSeed = response.seed ?? seed;

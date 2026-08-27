@@ -18,10 +18,14 @@ class WisdomService {
   final String baseUrl;
 
   /// GET `/api/wisdom/topics`.
-  Future<WisdomTopicsResponse> fetchTopics({ApiOnRetry? onRetry}) {
+  Future<WisdomTopicsResponse> fetchTopics({
+    ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
+  }) {
     return runWithRetries(
       () => _fetchTopicsOnce(),
       onRetry: onRetry,
+      onSlow: onSlow,
     );
   }
 
