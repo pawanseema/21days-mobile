@@ -74,9 +74,14 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     if (!hasId && item.youtubeWatchUrl.isEmpty) return;
 
     if (!mounted) return;
+    final showResultDebug =
+        context.read<SearchProvider>().uiConfig.showResultDebug;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VideoPlayerScreen(result: item),
+        builder: (_) => VideoPlayerScreen(
+          result: item,
+          showResultDebug: showResultDebug,
+        ),
       ),
     );
     // Match HTML: engage seed after the player is closed.

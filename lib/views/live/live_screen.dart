@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/recent_recording.dart';
 import '../../models/recording_model.dart';
 import '../../models/session_model.dart';
+import '../../providers/search_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../theme/app_theme.dart';
 import '../resources/video_player_screen.dart';
@@ -51,9 +52,14 @@ class LiveScreen extends StatelessWidget {
       videoId: session.videoId,
       url: session.youtubeLiveUrl,
     );
+    final showResultDebug =
+        context.read<SearchProvider>().uiConfig.showResultDebug;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VideoPlayerScreen(result: result),
+        builder: (_) => VideoPlayerScreen(
+          result: result,
+          showResultDebug: showResultDebug,
+        ),
       ),
     );
   }
@@ -67,9 +73,14 @@ class LiveScreen extends StatelessWidget {
       publishedAt: (recording.startsAt ?? recording.publishedAt)?.toIso8601String() ??
           '',
     );
+    final showResultDebug =
+        context.read<SearchProvider>().uiConfig.showResultDebug;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VideoPlayerScreen(result: result),
+        builder: (_) => VideoPlayerScreen(
+          result: result,
+          showResultDebug: showResultDebug,
+        ),
       ),
     );
   }

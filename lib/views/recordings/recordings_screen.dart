@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/year_recordings.dart';
 import '../../providers/recordings_provider.dart';
+import '../../providers/search_provider.dart';
 import '../../theme/app_theme.dart';
 import '../resources/video_player_screen.dart';
 
@@ -30,10 +31,13 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
     RecordingSession session,
     SessionVideo video,
   ) {
+    final showResultDebug =
+        context.read<SearchProvider>().uiConfig.showResultDebug;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => VideoPlayerScreen(
           result: video.toRecordingResult(sessionLabel: session.label),
+          showResultDebug: showResultDebug,
         ),
       ),
     );

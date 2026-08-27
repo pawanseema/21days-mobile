@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../models/recording_model.dart';
 import '../../models/video_chapter.dart';
+import '../../providers/search_provider.dart';
 import '../../services/search_service.dart';
 import '../../theme/app_theme.dart';
 import 'youtube_embed.dart';
@@ -13,10 +15,20 @@ import 'youtube_embed.dart';
 ///
 /// Loads Chroma chapters when available; hides the list if none are ingested.
 /// Start offset uses the same `startAt` mechanism as Resources search cards.
+///
+/// Debug-only metadata (section start timestamp, chakra) follows
+/// [SearchProvider.uiConfig.showResultDebug], same as Explore result cards.
 class VideoPlayerScreen extends StatefulWidget {
-  const VideoPlayerScreen({super.key, required this.result});
+  const VideoPlayerScreen({
+    super.key,
+    required this.result,
+    this.showResultDebug,
+  });
 
   final RecordingResult result;
+
+  /// When null, uses [SearchProvider] ui-config (defaults to false).
+  final bool? showResultDebug;
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -174,8 +186,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
+  bool get _showResultDebug {
+    if (widget.showResultDebug != null) return widget.showResultDebug!;
+    return context.watch<SearchProvider>().uiConfig.showResultDebug;
+  }
+
   Widget _buildDetails(ThemeData theme) {
     final result = widget.result;
+    final showDebug = _showResultDebug;
+    final showStart = showDebug && result.timestamp.isNotEmpty;
+    final durationLabel = result.durationLabel;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
       child: Column(
@@ -192,19 +212,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               ),
             ),
           ],
-          if (result.timestamp.isNotEmpty || result.durationLabel != null) ...[
+          if (showStart || durationLabel != null) ...[
             const SizedBox(height: 10),
             Text(
               [
-                if (result.timestamp.isNotEmpty) 'Starts ${result.timestamp}',
-                if (result.durationLabel != null) result.durationLabel,
+                if (showStart) 'Starts ${result.timestamp}',
+                ?durationLabel,
               ].join(' · '),
               style: theme.textTheme.labelLarge?.copyWith(
                 color: context.colors.mutedInk,
               ),
             ),
           ],
-          if (result.chakra.isNotEmpty) ...[
+          if (showDebug && result.chakra.isNotEmpty) ...[
             const SizedBox(height: 12),
             _Pill(label: result.chakra),
           ],
