@@ -436,7 +436,6 @@ class _LiveSessionCard extends StatelessWidget {
             const SizedBox(height: 10),
             _JoinButton(
               label: 'Watch on YouTube',
-              subtitle: 'Plays in this app',
               icon: Icons.play_circle_outline,
               filled: true,
               onPressed: session.hasYouTube || session.videoId.trim().isNotEmpty
@@ -446,7 +445,6 @@ class _LiveSessionCard extends StatelessWidget {
             const SizedBox(height: 8),
             _JoinButton(
               label: 'Join Zoom Meeting',
-              subtitle: 'Opens the Zoom app',
               icon: Icons.videocam_outlined,
               filled: false,
               onPressed: session.hasZoom ? onJoinZoom : null,
@@ -654,14 +652,12 @@ class _RecentRecordingCard extends StatelessWidget {
 class _JoinButton extends StatelessWidget {
   const _JoinButton({
     required this.label,
-    required this.subtitle,
     required this.icon,
     required this.filled,
     required this.onPressed,
   });
 
   final String label;
-  final String subtitle;
   final IconData icon;
   final bool filled;
   final VoidCallback? onPressed;
@@ -676,28 +672,12 @@ class _JoinButton extends StatelessWidget {
           Icon(icon, size: 26),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: filled
-                        ? Colors.white.withValues(alpha: 0.85)
-                        : colors.mutedInk,
-                  ),
-                ),
-              ],
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
           ),
           Icon(
