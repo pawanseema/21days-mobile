@@ -193,11 +193,15 @@ class LiveScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
             ],
-            ...recent.map(
-              (item) => _RecentRecordingCard(
-                recording: item,
-                onTap: () => _openRecording(context, item),
-              ),
+            _ListPanel(
+              children: recent
+                  .map(
+                    (item) => _RecentRecordingCard(
+                      recording: item,
+                      onTap: () => _openRecording(context, item),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ],
@@ -223,7 +227,7 @@ class _LiveLoadErrorBanner extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withValues(alpha: 0.92),
+        color: context.colors.surface,
         border: Border.all(color: context.colors.mist),
       ),
       child: Column(
@@ -257,8 +261,8 @@ class _EmptyLiveCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        color: Colors.white.withValues(alpha: 0.72),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+        color: context.colors.surface,
+        border: Border.all(color: context.colors.mist),
       ),
       child: Column(
         children: [
@@ -319,14 +323,14 @@ class _LiveSessionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withValues(alpha: 0.72),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+        borderRadius: BorderRadius.circular(24),
+        color: context.colors.surface,
+        border: Border.all(color: context.colors.mist),
         boxShadow: [
           BoxShadow(
-            color: context.colors.ink.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: context.colors.ink.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -466,48 +470,77 @@ class _ReminderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final colors = context.colors;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: colors.surface,
+        border: Border.all(color: colors.mist),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Reminder',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 10),
+          if (!session.canRemind)
             Text(
-              'Reminder',
-              style: theme.textTheme.titleMedium,
+              'Start time is not available yet. Pull to refresh later.',
+              style: theme.textTheme.bodyMedium,
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Notify 5 minutes before the session starts',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Switch.adaptive(
+                  value: sessionState.remindersScheduled,
+                  activeColor: colors.softTeal,
+                  onChanged: (enabled) {
+                    if (enabled) {
+                      sessionState.enableReminders();
+                    } else {
+                      sessionState.disableReminders();
+                    }
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            if (!session.canRemind)
-              Text(
-                'Start time is not available yet. Pull to refresh later.',
-                style: theme.textTheme.bodyMedium,
-              )
-            else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Notify 5 minutes before the session starts',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Switch.adaptive(
-                    value: sessionState.remindersScheduled,
-                    activeColor: context.colors.softTeal,
-                    onChanged: (enabled) {
-                      if (enabled) {
-                        sessionState.enableReminders();
-                      } else {
-                        sessionState.disableReminders();
-                      }
-                    },
-                  ),
-                ],
-              ),
-          ],
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Grouped list surface for Recent (matches web `.recent-list`).
+class _ListPanel extends StatelessWidget {
+  const _ListPanel({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: context.colors.listPanel,
+        border: Border.all(color: context.colors.mist),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
     );
   }
@@ -531,7 +564,7 @@ class _RecentRecordingCard extends StatelessWidget {
     final thumb = recording.thumbnailUrl;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -694,6 +727,7 @@ class _JoinButton extends StatelessWidget {
 
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
+        backgroundColor: colors.surface,
         foregroundColor: colors.ink,
         disabledForegroundColor: colors.mutedInk,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),

@@ -89,7 +89,7 @@ class AppTheme {
         selectedItemColor: colors.ink,
         unselectedItemColor: colors.mutedInk,
         type: BottomNavigationBarType.fixed,
-        elevation: 10,
+        elevation: 0,
         selectedLabelStyle:
             const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
@@ -117,7 +117,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: colors.surface,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -135,7 +135,7 @@ class AppTheme {
         hintStyle: TextStyle(color: colors.mutedInk),
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: colors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),

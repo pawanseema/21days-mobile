@@ -12,6 +12,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.ink,
     required this.mutedInk,
     required this.surface,
+    required this.listPanel,
     required this.mist,
     required this.accent,
     required this.accentSoft,
@@ -40,8 +41,11 @@ class AppPalette extends ThemeExtension<AppPalette> {
   /// Secondary body text.
   final Color mutedInk;
 
-  /// Cards and input fills.
+  /// Hero cards + content panels (same cool light blue as Explore chips).
   final Color surface;
+
+  /// Grouped list panels — same fill as [surface] for a single panel system.
+  final Color listPanel;
 
   /// Borders and dividers.
   final Color mist;
@@ -80,7 +84,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     chromeForeground: Color(0xFF133B5B),
     ink: Color(0xFF133B5B),
     mutedInk: Color(0xFF3D5A73),
-    surface: Color(0xFFFFFFF8),
+    // Same cool light blue as Explore chips / original Upcoming frost look.
+    surface: Color(0xFFF4F7FA),
+    listPanel: Color(0xFFF4F7FA),
     mist: Color(0xFFDAE9ED),
     accent: Color(0xFFF3D485),
     accentSoft: Color(0xFFFFFBEE),
@@ -97,7 +103,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
     chromeForeground: Color(0xFF2C3E50),
     ink: Color(0xFF2C3E50),
     mutedInk: Color(0xFF5A6B7D),
-    surface: Color(0xFFFFFFF8),
+    surface: Color(0xFFF4F7FA),
+    listPanel: Color(0xFFF4F7FA),
     mist: Color(0xFFD5DDE6),
     accent: Color(0xFF8B7355),
     accentSoft: Color(0xFFF4F1EB),
@@ -128,6 +135,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? ink,
     Color? mutedInk,
     Color? surface,
+    Color? listPanel,
     Color? mist,
     Color? accent,
     Color? accentSoft,
@@ -143,6 +151,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       ink: ink ?? this.ink,
       mutedInk: mutedInk ?? this.mutedInk,
       surface: surface ?? this.surface,
+      listPanel: listPanel ?? this.listPanel,
       mist: mist ?? this.mist,
       accent: accent ?? this.accent,
       accentSoft: accentSoft ?? this.accentSoft,

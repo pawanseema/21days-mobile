@@ -25,7 +25,7 @@ class HandoutResultCard extends StatelessWidget {
         showResultDebug ? result.tags.take(6).toList(growable: false) : const <String>[];
 
     return Material(
-      color: Colors.white,
+      color: context.colors.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),

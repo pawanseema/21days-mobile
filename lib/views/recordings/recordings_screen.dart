@@ -180,7 +180,7 @@ class _SessionTile extends StatelessWidget {
     ].join(' · ');
 
     return Material(
-      color: Colors.white,
+      color: context.colors.listPanel,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         decoration: BoxDecoration(
@@ -191,6 +191,8 @@ class _SessionTile extends StatelessWidget {
         child: Theme(
           data: theme.copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
+            backgroundColor: context.colors.listPanel,
+            collapsedBackgroundColor: context.colors.listPanel,
             tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
             title: Text(

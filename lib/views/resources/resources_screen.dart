@@ -288,7 +288,7 @@ class _ExampleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: const Color(0xFFF4F7FA),
+      color: context.colors.listPanel,
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         onTap: onTap,
