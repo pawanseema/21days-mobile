@@ -9,6 +9,25 @@ flutter pub get
 flutter run
 ```
 
+For **production API** (Cloud Run):
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://na21days-media-api-2g62ryauoq-uc.a.run.app
+```
+
+## App Store / TestFlight
+
+See **[docs/APPLE_REVIEW.md](docs/APPLE_REVIEW.md)** for the full checklist, review notes, and listing copy.
+
+**Release IPA:**
+
+```bash
+chmod +x scripts/ios_release.sh   # once
+./scripts/ios_release.sh
+```
+
+**Privacy policy URL:** https://www.explore21days.org/privacy (hosted from `21days-media-resources`; deploy backend before submit).
+
 Demo login works with any valid email + password (≥6 chars), or **Continue with Google** (mock).
 
 ## Structure

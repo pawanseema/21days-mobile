@@ -9,7 +9,8 @@ class AppConstants {
   ///
   /// Defaults to local Flask (`http://127.0.0.1:5005`).
   /// Point at Cloud Run with:
-  /// `--dart-define=API_BASE_URL=https://na21days-media-api-….run.app`
+  /// Point at Cloud Run with:
+  /// `--dart-define=API_BASE_URL=https://na21days-media-api-2g62ryauoq-uc.a.run.app`
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://127.0.0.1:5005',
