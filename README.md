@@ -26,7 +26,11 @@ chmod +x scripts/ios_release.sh   # once
 ./scripts/ios_release.sh
 ```
 
-**Privacy policy URL:** https://www.explore21days.org/privacy (hosted from `21days-media-resources`; deploy backend before submit).
+**Privacy policy URL:** https://www.explore21days.org/privacy
+
+**Support URL:** https://www.explore21days.org/support (`sahajabayarea@gmail.com`)
+
+Hosted from `21days-media-resources`; deploy backend before submit.
 
 Demo login works with any valid email + password (≥6 chars), or **Continue with Google** (mock).
 

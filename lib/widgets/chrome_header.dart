@@ -13,7 +13,7 @@ class ChromeHeader extends StatelessWidget {
 
   static const headline = 'Explore 21 Days';
   static const subtitle = 'Online Sahaja Yoga Meditation Course';
-  static const aboutUrl = 'https://us.sahajayoga.org/21days/';
+  static const aboutUrl = 'https://www.explore21days.org/';
 
   /// Yellow bar content height below the status bar.
   static const double contentHeight = 76;

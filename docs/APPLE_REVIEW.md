@@ -41,10 +41,12 @@ API_BASE_URL=https://na21days-media-api-2g62ryauoq-uc.a.run.app ./scripts/ios_re
 | Field | URL |
 |-------|-----|
 | **Privacy Policy** | https://www.explore21days.org/privacy |
-| **Support** | https://us.sahajayoga.org/21days/ |
-| **Marketing** (optional) | https://us.sahajayoga.org/21days/ |
+| **Support** | https://www.explore21days.org/support |
+| **Marketing** (optional) | https://www.explore21days.org/ |
 
-Deploy `21days-media-resources` so `/privacy` is live before you submit.
+**Support email** (shown on the support page; use for App Review contact if helpful): `sahajabayarea@gmail.com`
+
+Deploy `21days-media-resources` so `/privacy` and `/support` are live before you submit.
 
 ### 5. App Privacy (nutrition labels)
 
@@ -70,7 +72,7 @@ Verify:
 - [ ] Upcoming → session loads; reminder switch → iOS permission prompt
 - [ ] Reminder tap (if testable) → opens **Upcoming** tab
 - [ ] Recordings → expand session → play video
-- [ ] About (header) → opens course page in Safari
+- [ ] About (header) → opens https://www.explore21days.org/ in Safari
 - [ ] Live session → **Watch on YouTube** / **Join Zoom Meeting** when status is live
 
 ### 7. Screenshots
@@ -111,7 +113,8 @@ HOW TO TEST:
 
 EXTERNAL LINKS:
 - Live sessions: Watch on YouTube (in-app player) or Join Zoom Meeting (Zoom app).
-- About in the header opens https://us.sahajayoga.org/21days/
+- About in the header opens https://www.explore21days.org/
+- Support: https://www.explore21days.org/support (sahajabayarea@gmail.com)
 
 No in-app purchases. No user accounts in this version.
 ```
@@ -160,4 +163,5 @@ Initial release.
 | Empty app (localhost API) | Always use `ios_release.sh` or `--dart-define=API_BASE_URL=…` |
 | Missing notification purpose string | `NSUserNotificationsUsageDescription` in Info.plist |
 | Privacy URL broken | Deploy `/privacy` on production |
+| Support URL broken | Deploy `/support` on production |
 | Login without delete account | v1 has no login screen — keep it that way until delete flow ships |

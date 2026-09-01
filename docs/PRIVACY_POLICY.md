@@ -2,6 +2,10 @@
 
 **Canonical URL (App Store):** https://www.explore21days.org/privacy
 
+**Support URL:** https://www.explore21days.org/support
+
+**Support email:** sahajabayarea@gmail.com
+
 **Source HTML:** `../21days-media-resources/ui/privacy.html` (served by Flask at `/privacy`)
 
 Last updated: August 31, 2026
@@ -12,7 +16,7 @@ This policy describes how the **21Days** mobile app and the **Explore 21 Days** 
 
 ## Who we are
 
-The Service supports the public [21 Days online Sahaja Yoga meditation course](https://us.sahajayoga.org/21days/). For questions about this policy, contact us through the course page above.
+The Service is the **Explore 21 Days** online Sahaja Yoga meditation course companion (website and mobile app). For questions about this policy, email [sahajabayarea@gmail.com](mailto:sahajabayarea@gmail.com) or visit [https://www.explore21days.org/support](https://www.explore21days.org/support).
 
 ## What the Service does
 
@@ -64,7 +68,7 @@ Like most web services, our servers may automatically record technical informati
 
 ## Children
 
-The Service is intended for people interested in Sahaja Yoga meditation education. If you believe a child has provided personal information to us, please contact us through the course page and we will take appropriate steps.
+The Service is intended for people interested in Sahaja Yoga meditation education. If you believe a child has provided personal information to us, please email [sahajabayarea@gmail.com](mailto:sahajabayarea@gmail.com) and we will take appropriate steps.
 
 ## Changes
 
