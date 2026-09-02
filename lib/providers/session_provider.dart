@@ -176,7 +176,14 @@ class SessionProvider extends ChangeNotifier {
 
     try {
       await _notificationService.initialize();
-      await _notificationService.requestPermissions();
+      final granted = await _notificationService.requestPermissions();
+      if (!granted) {
+        _statusMessage =
+            'Notifications are off for 21Days. Enable them in Settings → 21Days → Notifications.';
+        _remindersScheduled = false;
+        notifyListeners();
+        return;
+      }
       await _notificationService.scheduleSessionReminders(session);
       final prefs = await _prefs();
       await prefs.setString(_prefReminderSessionId, session.id);

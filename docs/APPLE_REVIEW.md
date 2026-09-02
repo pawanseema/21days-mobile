@@ -3,8 +3,18 @@
 Checklist and copy for TestFlight / App Store submission.
 
 **Bundle ID:** `com.sahajayoga.twentyOneDays`  
-**Display name:** 21Days  
+**App Store name** (App Store Connect — must be globally unique): **Explore 21 Days**  
+**Icon label on iPhone** (`CFBundleDisplayName` in `Info.plist`): **21Days**  
 **Version:** see `pubspec.yaml` (`version: x.y.z+build`)
+
+### Naming (store vs home screen)
+
+| Where | Value | Set in |
+|-------|--------|--------|
+| App Store listing / search | Explore 21 Days | App Store Connect when you create the app (not in the IPA) |
+| Name under the icon | 21Days | `ios/Runner/Info.plist` → already `21Days` — no change needed |
+
+You do **not** need a new IPA just to use **Explore 21 Days** on the store. Create the app record with that name and your existing upload (same bundle ID) should appear in TestFlight after processing.
 
 ---
 
@@ -28,7 +38,12 @@ API_BASE_URL=https://na21days-media-api-2g62ryauoq-uc.a.run.app ./scripts/ios_re
 
 ### 2. iOS permissions
 
-`ios/Runner/Info.plist` includes `NSUserNotificationsUsageDescription` for the Upcoming session reminder.
+`ios/Runner/Info.plist` includes:
+
+- `NSUserNotificationsUsageDescription` — shown when the user turns on the Upcoming reminder (not at app launch).
+- `ITSAppUsesNonExemptEncryption` = `false` — standard HTTPS only; skips repeated export-compliance prompts on upload.
+
+If no permission dialog appears when toggling the reminder, check **Settings → 21Days → Notifications** (permission may already be granted or previously denied).
 
 ### 3. Signing
 

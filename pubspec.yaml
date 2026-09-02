@@ -1,7 +1,7 @@
 name: twenty_one_days
 description: "21Days — Sahaja Yoga Meditation hub for live sessions, mentors, and recorded wisdom."
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.2
