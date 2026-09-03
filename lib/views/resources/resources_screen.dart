@@ -49,9 +49,11 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   void _selectTab(ResourceTab tab) {
     final search = context.read<SearchProvider>();
     if (search.tab == tab) return;
-    _controller.clear();
     search.setTab(tab);
-    setState(() => _draftEmpty = true);
+    _controller.text = search.query;
+    _controller.selection =
+        TextSelection.collapsed(offset: search.query.length);
+    setState(() => _draftEmpty = search.query.trim().isEmpty);
   }
 
   void _runSearch(String query) {
@@ -181,7 +183,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
             ],
           ),
         ),
-        if (search.relatedViewActive)
+        if (search.tab == ResourceTab.videos && search.relatedViewActive)
           _RelatedBanner(
             search: search,
             onBack: () {
