@@ -9,6 +9,8 @@ import '../../models/video_chapter.dart';
 import '../../providers/search_provider.dart';
 import '../../services/search_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
+import '../../widgets/app_content_width.dart';
 import 'youtube_embed.dart';
 
 /// In-app YouTube player for a video search hit (starts at section timestamp).
@@ -196,164 +198,211 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final showDebug = _showResultDebug;
     final showStart = showDebug && result.timestamp.isNotEmpty;
     final durationLabel = result.durationLabel;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (result.sectionTitle.isNotEmpty)
-            Text(result.sectionTitle, style: theme.textTheme.headlineSmall),
-          if (result.videoTitle.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              result.videoTitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: context.colors.deepTeal,
+    return AppContentWidth(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppLayout.space(context, 20),
+          AppLayout.space(context, 18),
+          AppLayout.space(context, 20),
+          AppLayout.space(context, 28),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (result.sectionTitle.isNotEmpty)
+              Text(result.sectionTitle, style: theme.textTheme.headlineSmall),
+            if (result.videoTitle.isNotEmpty) ...[
+              SizedBox(height: AppLayout.space(context, 6)),
+              Text(
+                result.videoTitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: context.colors.deepTeal,
+                ),
               ),
-            ),
-          ],
-          if (showStart || durationLabel != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              [
-                if (showStart) 'Starts ${result.timestamp}',
-                ?durationLabel,
-              ].join(' · '),
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: context.colors.mutedInk,
+            ],
+            if (showStart || durationLabel != null) ...[
+              SizedBox(height: AppLayout.space(context, 10)),
+              Text(
+                [
+                  if (showStart) 'Starts ${result.timestamp}',
+                  ?durationLabel,
+                ].join(' · '),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: context.colors.mutedInk,
+                ),
               ),
-            ),
-          ],
-          if (showDebug && result.chakra.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _Pill(label: result.chakra),
-          ],
-          if (result.summary.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(result.summary, style: theme.textTheme.bodyLarge),
-          ],
-          if (result.quote.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              '"${result.quote}"',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontStyle: FontStyle.italic,
-                color: context.colors.mutedInk,
+            ],
+            if (showDebug && result.chakra.isNotEmpty) ...[
+              SizedBox(height: AppLayout.space(context, 12)),
+              _Pill(label: result.chakra),
+            ],
+            if (result.summary.isNotEmpty) ...[
+              SizedBox(height: AppLayout.space(context, 16)),
+              Text(result.summary, style: theme.textTheme.bodyLarge),
+            ],
+            if (result.quote.isNotEmpty) ...[
+              SizedBox(height: AppLayout.space(context, 16)),
+              Text(
+                '"${result.quote}"',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: context.colors.mutedInk,
+                ),
               ),
+            ],
+            if (_chaptersLoading) ...[
+              SizedBox(height: AppLayout.space(context, 20)),
+              const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ] else if (_chapters.isNotEmpty) ...[
+              SizedBox(height: AppLayout.space(context, 22)),
+              Text(
+                'Jump directly to a section',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: context.colors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: AppLayout.space(context, 4)),
+              ..._chapters.map(
+                (chapter) => _ChapterRow(
+                  chapter: chapter,
+                  onTap: () => _seekToChapter(chapter),
+                ),
+              ),
+            ],
+            SizedBox(height: AppLayout.space(context, 18)),
+            TextButton.icon(
+              onPressed: _openExternally,
+              icon: Icon(
+                Icons.open_in_new,
+                size: AppLayout.fontSize(context, 20),
+              ),
+              label: const Text('Open on YouTube'),
             ),
           ],
-          if (_chaptersLoading) ...[
-            const SizedBox(height: 20),
-            const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ] else if (_chapters.isNotEmpty) ...[
-            const SizedBox(height: 22),
-            Text(
-              'Jump directly to a section',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: context.colors.ink,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            ..._chapters.map(
-              (chapter) => _ChapterRow(
-                chapter: chapter,
-                onTap: () => _seekToChapter(chapter),
-              ),
-            ),
-          ],
-          const SizedBox(height: 18),
-          TextButton.icon(
-            onPressed: _openExternally,
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('Open on YouTube'),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  /// Player is a pushed route — outside [HomeShell]'s Theme — so re-apply
+  /// comfortable density here for iPad (Explore / Recordings / Upcoming Recent).
+  Widget _wrapComfortable(BuildContext context, Widget child) {
+    if (!AppLayout.isComfortable(context)) return child;
+    return Theme(
+      data: AppTheme.comfortableDensity(Theme.of(context)),
+      child: child,
+    );
+  }
+
+  Widget _playerScaffold({
+    required String title,
+    required Widget playerSlot,
+    required bool scrollPlayerWithDetails,
+  }) {
+    return Builder(
+      builder: (context) {
+        final details = _buildDetails(Theme.of(context));
+        if (scrollPlayerWithDetails) {
+          return Scaffold(
+            backgroundColor: context.colors.pageBlue,
+            appBar: AppBar(
+              title: Text(
+                title.isEmpty ? 'Video' : title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            body: ListView(
+              children: [
+                playerSlot,
+                details,
+              ],
+            ),
+          );
+        }
+        return Scaffold(
+          backgroundColor: context.colors.pageBlue,
+          appBar: AppBar(
+            title: Text(
+              title.isEmpty ? 'Video' : title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          body: Column(
+            children: [
+              playerSlot,
+              Expanded(
+                child: ListView(
+                  children: [details],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final result = widget.result;
-    final theme = Theme.of(context);
     final title = [
       if (result.videoTitle.isNotEmpty) result.videoTitle,
       if (result.sectionTitle.isNotEmpty) result.sectionTitle,
     ].join(' — ');
 
-    final details = _buildDetails(theme);
-
     if (kIsWeb) {
-      return Scaffold(
-        backgroundColor: context.colors.pageBlue,
-        appBar: AppBar(
-          title: Text(
-            title.isEmpty ? 'Video' : title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        body: Column(
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: !_playerReady && _startSeconds == 0
-                  ? const ColoredBox(
+      return _wrapComfortable(
+        context,
+        _playerScaffold(
+          title: title,
+          scrollPlayerWithDetails: false,
+          playerSlot: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: !_playerReady && _startSeconds == 0
+                ? const ColoredBox(
+                    color: Colors.black,
+                    child: Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  )
+                : (buildYoutubeEmbed(_playbackResult) ??
+                    const ColoredBox(
                       color: Colors.black,
                       child: Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      ),
-                    )
-                  : (buildYoutubeEmbed(_playbackResult) ??
-                      const ColoredBox(
-                        color: Colors.black,
-                        child: Center(
-                          child: Text(
-                            'Video unavailable',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                        child: Text(
+                          'Video unavailable',
+                          style: TextStyle(color: Colors.white),
                         ),
-                      )),
-            ),
-            Expanded(
-              child: ListView(
-                children: [details],
-              ),
-            ),
-          ],
+                      ),
+                    )),
+          ),
         ),
       );
     }
 
     final controller = _controller;
     if (controller == null) {
-      return Scaffold(
-        backgroundColor: context.colors.pageBlue,
-        appBar: AppBar(
-          title: Text(
-            title.isEmpty ? 'Video' : title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        body: ListView(
-          children: [
-            const AspectRatio(
-              aspectRatio: 16 / 9,
-              child: ColoredBox(
-                color: Colors.black,
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
+      return _wrapComfortable(
+        context,
+        _playerScaffold(
+          title: title,
+          scrollPlayerWithDetails: true,
+          playerSlot: const AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ColoredBox(
+              color: Colors.black,
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.white),
               ),
             ),
-            details,
-          ],
+          ),
         ),
       );
     }
@@ -369,26 +418,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ),
       ),
       builder: (context, player) {
-        return Scaffold(
-          backgroundColor: context.colors.pageBlue,
-          appBar: AppBar(
-            title: Text(
-              title.isEmpty ? 'Video' : title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          // Keep the player pinned so scrolling chapters/details does not
-          // detach the WebView (which pauses playback and breaks seekTo).
-          body: Column(
-            children: [
-              player,
-              Expanded(
-                child: ListView(
-                  children: [details],
-                ),
-              ),
-            ],
+        // Keep the player pinned so scrolling chapters/details does not
+        // detach the WebView (which pauses playback and breaks seekTo).
+        return _wrapComfortable(
+          context,
+          _playerScaffold(
+            title: title,
+            scrollPlayerWithDetails: false,
+            playerSlot: player,
           ),
         );
       },
@@ -414,12 +451,15 @@ class _ChapterRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+          padding: EdgeInsets.symmetric(
+            vertical: AppLayout.space(context, 5),
+            horizontal: AppLayout.space(context, 4),
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 64,
+                width: AppLayout.space(context, 72),
                 child: Text(
                   chapter.timestamp,
                   style: theme.textTheme.labelLarge?.copyWith(
@@ -428,7 +468,7 @@ class _ChapterRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: AppLayout.space(context, 8)),
               Expanded(
                 child: Text(
                   chapter.sectionTitle,
@@ -453,7 +493,10 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppLayout.space(context, 10),
+        vertical: AppLayout.space(context, 4),
+      ),
       decoration: BoxDecoration(
         color: context.colors.apricotMist,
         borderRadius: BorderRadius.circular(20),

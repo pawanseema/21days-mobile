@@ -6,6 +6,7 @@ import '../../models/year_recordings.dart';
 import '../../providers/recordings_provider.dart';
 import '../../providers/search_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
 import '../resources/video_player_screen.dart';
 
 /// Recordings tab — latest year playlist sliced into collapsible sessions.
@@ -193,8 +194,16 @@ class _SessionTile extends StatelessWidget {
           child: ExpansionTile(
             backgroundColor: context.colors.listPanel,
             collapsedBackgroundColor: context.colors.listPanel,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
+            tilePadding: EdgeInsets.symmetric(
+              horizontal: AppLayout.space(context, 16),
+              vertical: AppLayout.space(context, 4),
+            ),
+            childrenPadding: EdgeInsets.fromLTRB(
+              AppLayout.space(context, 8),
+              0,
+              AppLayout.space(context, 8),
+              AppLayout.space(context, 10),
+            ),
             title: Text(
               session.label,
               style: theme.textTheme.titleLarge?.copyWith(
@@ -208,7 +217,12 @@ class _SessionTile extends StatelessWidget {
             children: [
               if (session.videos.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                  padding: EdgeInsets.fromLTRB(
+                    AppLayout.space(context, 8),
+                    0,
+                    AppLayout.space(context, 8),
+                    AppLayout.space(context, 8),
+                  ),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -248,23 +262,28 @@ class _SessionVideoRow extends StatelessWidget {
     final when = video.publishedAt;
     final whenLabel =
         when == null ? null : DateFormat('MMM d, y').format(when);
+    final thumbW = AppLayout.space(context, 88);
+    final thumbH = AppLayout.space(context, 50);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: EdgeInsets.only(bottom: AppLayout.space(context, 6)),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppLayout.space(context, 8),
+              vertical: AppLayout.space(context, 6),
+            ),
             child: Row(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: SizedBox(
-                    width: 88,
-                    height: 50,
+                    width: thumbW,
+                    height: thumbH,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -282,14 +301,14 @@ class _SessionVideoRow extends StatelessWidget {
                           child: Icon(
                             Icons.play_circle_fill,
                             color: Colors.white.withValues(alpha: 0.92),
-                            size: 22,
+                            size: AppLayout.fontSize(context, 22),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppLayout.space(context, 12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,13 +317,15 @@ class _SessionVideoRow extends StatelessWidget {
                         video.title.isEmpty ? 'Meditation' : video.title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: context.colors.ink,
-                          fontSize: 13.5,
+                          // Absolute sizes override theme fontSizeFactor —
+                          // scale via AppLayout so iPad gets 1.5x, iPhone stays 13.5.
+                          fontSize: AppLayout.fontSize(context, 13.5),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (whenLabel != null) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: AppLayout.space(context, 2)),
                         Text(
                           whenLabel,
                           style: theme.textTheme.bodySmall?.copyWith(

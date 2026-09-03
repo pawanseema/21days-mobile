@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/handout_model.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
 
 /// Handout search card — title + description in release; optional debug pills.
 class HandoutResultCard extends StatelessWidget {
@@ -31,7 +32,7 @@ class HandoutResultCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(AppLayout.space(context, 16)),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: context.colors.mist),
@@ -46,14 +47,14 @@ class HandoutResultCard extends StatelessWidget {
                     child: Text(
                       result.title.isEmpty ? 'Handout' : result.title,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 15,
+                        fontSize: AppLayout.fontSize(context, 15),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Icon(
                     Icons.open_in_new,
-                    size: 18,
+                    size: AppLayout.fontSize(context, 18),
                     color: context.colors.mutedInk,
                   ),
                 ],

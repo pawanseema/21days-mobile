@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../utils/layout_breakpoints.dart';
 import 'app_palette.dart';
 
 export 'app_palette.dart';
@@ -143,6 +144,39 @@ class AppTheme {
         ),
       ),
       dividerTheme: DividerThemeData(color: colors.mist, thickness: 1),
+    );
+  }
+
+  /// Larger type and control padding for wide layouts (iPad). Phone theme
+  /// stays [fromPalette] — call only when [AppLayout.isComfortable].
+  static ThemeData comfortableDensity(ThemeData base) {
+    final fontScale = AppLayout.comfortableFontScale;
+    final input = base.inputDecorationTheme;
+    final padV = 14.0 * AppLayout.comfortableSpaceScale;
+    final padH = 16.0 * AppLayout.comfortableSpaceScale;
+    return base.copyWith(
+      textTheme: base.textTheme.apply(fontSizeFactor: fontScale),
+      primaryTextTheme: base.primaryTextTheme.apply(fontSizeFactor: fontScale),
+      inputDecorationTheme: input.copyWith(
+        contentPadding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
+      ),
+      bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 12 * fontScale,
+        ),
+        unselectedLabelStyle: TextStyle(fontSize: 12 * fontScale),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: (base.elevatedButtonTheme.style ?? const ButtonStyle()).copyWith(
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(
+              horizontal: 28 * AppLayout.comfortableSpaceScale,
+              vertical: 14 * AppLayout.comfortableSpaceScale,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

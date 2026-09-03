@@ -7,6 +7,8 @@ import '../../models/handout_model.dart';
 import '../../models/recording_model.dart';
 import '../../providers/search_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
+import '../../widgets/responsive_result_list.dart';
 import 'handout_result_card.dart';
 import 'handout_viewer_screen.dart';
 import 'video_player_screen.dart';
@@ -120,11 +122,13 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   @override
   Widget build(BuildContext context) {
     final search = context.watch<SearchProvider>();
+    final padH = AppLayout.space(context, 20);
+    final padTop = AppLayout.space(context, 10);
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+          padding: EdgeInsets.fromLTRB(padH, padTop, padH, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -132,18 +136,27 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                 tab: search.tab,
                 onSelect: _selectTab,
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: AppLayout.space(context, 14)),
               TextField(
                 controller: _controller,
                 textInputAction: TextInputAction.search,
                 onSubmitted: _runSearch,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: AppLayout.fontSize(context, 16),
+                    ),
                 decoration: InputDecoration(
                   hintText: search.searchHint,
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    size: AppLayout.fontSize(context, 24),
+                  ),
                   suffixIcon: !_draftEmpty
                       ? IconButton(
                           onPressed: _clearSearch,
-                          icon: const Icon(Icons.clear),
+                          icon: Icon(
+                            Icons.clear,
+                            size: AppLayout.fontSize(context, 22),
+                          ),
                         )
                       : null,
                 ),
@@ -151,10 +164,10 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
               if (_draftEmpty &&
                   !search.hasQuery &&
                   !search.relatedViewActive) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: AppLayout.space(context, 12)),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: AppLayout.space(context, 8),
+                  runSpacing: AppLayout.space(context, 8),
                   children: [
                     for (final prompt in search.examplePrompts)
                       _ExampleChip(
@@ -164,7 +177,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 10),
+              SizedBox(height: AppLayout.space(context, 10)),
             ],
           ),
         ),
@@ -251,7 +264,7 @@ class _ModeButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(vertical: AppLayout.space(context, 8)),
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(10),
@@ -266,7 +279,7 @@ class _ModeButton extends StatelessWidget {
             style: theme.textTheme.labelLarge?.copyWith(
               color: context.colors.ink,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-              fontSize: 13,
+              fontSize: AppLayout.fontSize(context, 13),
             ),
           ),
         ),
@@ -294,7 +307,10 @@ class _ExampleChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppLayout.space(context, 12),
+            vertical: AppLayout.space(context, 7),
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: context.colors.mist),
@@ -304,7 +320,7 @@ class _ExampleChip extends StatelessWidget {
             style: theme.textTheme.labelLarge?.copyWith(
               color: context.colors.ink,
               fontWeight: FontWeight.w600,
-              fontSize: 12,
+              fontSize: AppLayout.fontSize(context, 12),
             ),
           ),
         ),
@@ -446,10 +462,8 @@ class _ResultsPane extends StatelessWidget {
           child: Text('No results found. Try a different search query.'),
         );
       }
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+      return ResponsiveResultList(
         itemCount: search.videoResults.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = search.videoResults[index];
           return VideoResultCard(
@@ -468,10 +482,8 @@ class _ResultsPane extends StatelessWidget {
         child: Text('No results found. Try a different search query.'),
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+    return ResponsiveResultList(
       itemCount: search.handoutResults.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = search.handoutResults[index];
         return HandoutResultCard(
