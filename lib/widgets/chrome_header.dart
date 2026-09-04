@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/layout_breakpoints.dart';
 import 'chrome_portrait.dart';
 
 /// Fixed yellow-bar branding shared across all tabs.
@@ -42,10 +43,15 @@ class ChromeHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = context.colors;
     final display = theme.textTheme;
+    final comfortable = AppLayout.isComfortable(context);
     final narrow = MediaQuery.sizeOf(context).width < 768;
-    final portraitHeight = narrow ? 52.0 : 64.0;
-    final headlineSize = narrow ? 17.0 : 20.0;
-    final subtitleSize = narrow ? 11.5 : 13.0;
+    // Phone baselines; [AppLayout.fontSize] is 1.0 on iPhone, 1.5 on iPad.
+    final portraitHeight = comfortable
+        ? AppLayout.space(context, 52)
+        : (narrow ? 52.0 : 64.0);
+    final headlineSize = AppLayout.fontSize(context, narrow ? 17 : 20);
+    final subtitleSize = AppLayout.fontSize(context, narrow ? 11.5 : 13);
+    final aboutSize = AppLayout.fontSize(context, 13);
 
     return Material(
       color: colors.chromeBackground,
@@ -129,7 +135,7 @@ class ChromeHeader extends StatelessWidget {
                       'About',
                       style: display.labelLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontSize: aboutSize,
                       ),
                     ),
                   ),

@@ -71,12 +71,8 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Center(
-                    child: Image.asset(
-                      ChromePortrait.assetPath,
-                      height: 160,
-                      fit: BoxFit.contain,
-                    ),
+                  const Center(
+                    child: ChromePortrait(height: 160),
                   ),
                   const SizedBox(height: 22),
                   Container(

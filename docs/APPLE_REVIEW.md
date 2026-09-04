@@ -63,6 +63,8 @@ If no permission dialog appears when toggling the reminder, check **Settings →
 
 Deploy `21days-media-resources` so `/privacy` and `/support` are live before you submit.
 
+**During App Store review:** keep Cloud Run warm so reviewers avoid cold starts — set `RUN_MIN_INSTANCES=1` in `21days-media-resources/scripts/gcp/config.env` and run `./scripts/gcp/deploy.sh --no-build`. See `../21days-media-resources/scripts/gcp/README.md` (section “Keep one warm instance during App Store review”). Revert to `0` after approval.
+
 ### 5. App Privacy (nutrition labels)
 
 For **version 1.0** (no login, no analytics):

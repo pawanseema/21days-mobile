@@ -9,6 +9,7 @@ import '../../models/session_model.dart';
 import '../../providers/search_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
 import '../resources/video_player_screen.dart';
 
 /// Live tab — current/upcoming session + recent completed streams (≤72h).
@@ -612,7 +613,7 @@ class _RecentRecordingCard extends StatelessWidget {
                             : recording.title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: context.colors.ink,
-                          fontSize: 13.5,
+                          fontSize: AppLayout.fontSize(context, 13.5),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -674,9 +675,9 @@ class _JoinButton extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
-                fontSize: 16,
+                fontSize: AppLayout.fontSize(context, 16),
               ),
             ),
           ),

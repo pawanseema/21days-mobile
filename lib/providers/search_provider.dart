@@ -15,6 +15,29 @@ class _SearchSnapshot {
   final List<RecordingResult> results;
 }
 
+/// Per-mode Explore session (query + cards + video-only related state).
+class _ModeSession {
+  const _ModeSession({
+    this.query = '',
+    this.videoResults = const [],
+    this.handoutResults = const [],
+    this.error,
+    this.engagedSeed,
+    this.relatedViewActive = false,
+    this.relatedSeed,
+    this.searchSnapshot,
+  });
+
+  final String query;
+  final List<RecordingResult> videoResults;
+  final List<HandoutResult> handoutResults;
+  final String? error;
+  final RecordingResult? engagedSeed;
+  final bool relatedViewActive;
+  final RecordingResult? relatedSeed;
+  final _SearchSnapshot? searchSnapshot;
+}
+
 /// Drives Explore: Videos / Handouts search + more-like-this for videos.
 class SearchProvider extends ChangeNotifier {
   SearchProvider({SearchService? searchService})
@@ -41,6 +64,10 @@ class SearchProvider extends ChangeNotifier {
   bool _relatedViewActive = false;
   RecordingResult? _relatedSeed;
   _SearchSnapshot? _searchSnapshot;
+
+  /// Last session per mode so Videos ↔ Handouts can restore cards.
+  _ModeSession _videosSession = const _ModeSession();
+  _ModeSession _handoutsSession = const _ModeSession();
 
   ResourceTab get tab => _tab;
   String get query => _query;
@@ -106,6 +133,7 @@ class SearchProvider extends ChangeNotifier {
 
   bool showFindSimilarOn(RecordingResult result) {
     if (!enableMoreLikeThis || _relatedViewActive) return false;
+    if (_tab != ResourceTab.videos) return false;
     final engaged = _engagedSeed;
     if (engaged == null) return false;
     return engaged.seedKey == result.seedKey && result.canRequestRelated;
@@ -120,28 +148,72 @@ class SearchProvider extends ChangeNotifier {
     }
   }
 
-  void setTab(ResourceTab tab) {
-    if (_tab == tab) return;
-    _tab = tab;
-    _query = '';
-    _videoResults = const [];
-    _handoutResults = const [];
-    _error = null;
+  _ModeSession _captureSession() {
+    if (_tab == ResourceTab.videos) {
+      return _ModeSession(
+        query: _query,
+        videoResults: List<RecordingResult>.from(_videoResults),
+        error: _error,
+        engagedSeed: _engagedSeed,
+        relatedViewActive: _relatedViewActive,
+        relatedSeed: _relatedSeed,
+        searchSnapshot: _searchSnapshot,
+      );
+    }
+    return _ModeSession(
+      query: _query,
+      handoutResults: List<HandoutResult>.from(_handoutResults),
+      error: _error,
+    );
+  }
+
+  void _applySession(_ModeSession session) {
+    _query = session.query;
+    _error = session.error;
     _loading = false;
     _loadingHint = null;
-    _clearRelatedState();
+    _findingRelated = false;
+    if (_tab == ResourceTab.videos) {
+      _videoResults = session.videoResults;
+      _engagedSeed = session.engagedSeed;
+      _relatedViewActive = session.relatedViewActive;
+      _relatedSeed = session.relatedSeed;
+      _searchSnapshot = session.searchSnapshot;
+    } else {
+      _handoutResults = session.handoutResults;
+      _clearRelatedState();
+    }
+  }
+
+  void setTab(ResourceTab tab) {
+    if (_tab == tab) return;
+    if (_tab == ResourceTab.videos) {
+      _videosSession = _captureSession();
+    } else {
+      _handoutsSession = _captureSession();
+    }
+    _tab = tab;
+    _applySession(
+      tab == ResourceTab.videos ? _videosSession : _handoutsSession,
+    );
     notifyListeners();
   }
 
   Future<void> search(String query) async {
+    final requestedTab = _tab;
     _query = query;
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
-      _videoResults = const [];
-      _handoutResults = const [];
       _error = null;
       _loadingHint = null;
-      _clearRelatedState();
+      if (requestedTab == ResourceTab.videos) {
+        _videoResults = const [];
+        _clearRelatedState();
+        _videosSession = const _ModeSession();
+      } else {
+        _handoutResults = const [];
+        _handoutsSession = const _ModeSession();
+      }
       notifyListeners();
       return;
     }
@@ -149,40 +221,60 @@ class SearchProvider extends ChangeNotifier {
     _loading = true;
     _loadingHint = null;
     _error = null;
-    _clearRelatedState();
+    if (requestedTab == ResourceTab.videos) {
+      _clearRelatedState();
+    }
     notifyListeners();
 
     try {
-      if (_tab == ResourceTab.videos) {
+      if (requestedTab == ResourceTab.videos) {
         final response = await _searchService.searchVideos(
           query: trimmed,
-          onRetry: _markRetrying,
-          onSlow: _markSlow,
+          onRetry: () {
+            if (_tab == requestedTab) _markRetrying();
+          },
+          onSlow: () {
+            if (_tab == requestedTab) _markSlow();
+          },
         );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
         _videoResults = sorted;
-        _handoutResults = const [];
+        _videosSession = _ModeSession(query: trimmed, videoResults: sorted);
+        if (_tab != requestedTab) return;
       } else {
         final response = await _searchService.searchHandouts(
           query: trimmed,
-          onRetry: _markRetrying,
-          onSlow: _markSlow,
+          onRetry: () {
+            if (_tab == requestedTab) _markRetrying();
+          },
+          onSlow: () {
+            if (_tab == requestedTab) _markSlow();
+          },
         );
         final sorted = [...response.results]
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
         _handoutResults = sorted;
-        _videoResults = const [];
+        _handoutsSession = _ModeSession(query: trimmed, handoutResults: sorted);
+        if (_tab != requestedTab) return;
       }
     } catch (e) {
       debugPrint('SearchProvider search failed: $e');
+      if (_tab != requestedTab) return;
       _error = ApiMessages.requestFailed;
-      _videoResults = const [];
-      _handoutResults = const [];
+      if (requestedTab == ResourceTab.videos) {
+        _videoResults = const [];
+        _videosSession = _ModeSession(query: trimmed);
+      } else {
+        _handoutResults = const [];
+        _handoutsSession = _ModeSession(query: trimmed);
+      }
     } finally {
-      _loading = false;
-      _loadingHint = null;
-      notifyListeners();
+      if (_tab == requestedTab) {
+        _loading = false;
+        _loadingHint = null;
+        notifyListeners();
+      }
     }
   }
 
@@ -202,10 +294,12 @@ class SearchProvider extends ChangeNotifier {
       return;
     }
 
+    final requestedTab = ResourceTab.videos;
     _searchSnapshot ??= _SearchSnapshot(
       query: _query,
       results: List<RecordingResult>.from(_videoResults),
     );
+    final snapshot = _searchSnapshot;
 
     _loading = true;
     _findingRelated = true;
@@ -216,26 +310,45 @@ class SearchProvider extends ChangeNotifier {
     try {
       final response = await _searchService.fetchRelatedVideos(
         seed: seed,
-        onRetry: _markRetrying,
-        onSlow: _markSlow,
+        onRetry: () {
+          if (_tab == requestedTab) _markRetrying();
+        },
+        onSlow: () {
+          if (_tab == requestedTab) _markSlow();
+        },
       );
-      _relatedViewActive = true;
-      _relatedSeed = response.seed ?? seed;
-      _engagedSeed = null;
+      final relatedSeed = response.seed ?? seed;
       final sorted = [...response.results]
         ..sort((a, b) => b.confidence.compareTo(a.confidence));
+      final sessionQuery = snapshot?.query ?? _query;
+      _videosSession = _ModeSession(
+        query: sessionQuery,
+        videoResults: sorted,
+        relatedViewActive: true,
+        relatedSeed: relatedSeed,
+        searchSnapshot: snapshot,
+        error: sorted.isEmpty ? 'No similar segments found.' : null,
+      );
+      if (_tab != requestedTab) return;
+      _searchSnapshot = snapshot;
       _videoResults = sorted;
+      _relatedViewActive = true;
+      _relatedSeed = relatedSeed;
+      _engagedSeed = null;
       if (sorted.isEmpty) {
         _error = 'No similar segments found.';
       }
     } catch (e) {
       debugPrint('SearchProvider findSimilarClips failed: $e');
+      if (_tab != requestedTab) return;
       _error = ApiMessages.requestFailed;
     } finally {
-      _loading = false;
-      _findingRelated = false;
-      _loadingHint = null;
-      notifyListeners();
+      if (_tab == requestedTab) {
+        _loading = false;
+        _findingRelated = false;
+        _loadingHint = null;
+        notifyListeners();
+      }
     }
   }
 
@@ -251,16 +364,25 @@ class SearchProvider extends ChangeNotifier {
     _videoResults = snapshot.results;
     _error = null;
     _clearRelatedState();
+    _videosSession = _ModeSession(
+      query: snapshot.query,
+      videoResults: snapshot.results,
+    );
     notifyListeners();
   }
 
   void clear() {
     _query = '';
-    _videoResults = const [];
-    _handoutResults = const [];
     _error = null;
     _loadingHint = null;
-    _clearRelatedState();
+    if (_tab == ResourceTab.videos) {
+      _videoResults = const [];
+      _clearRelatedState();
+      _videosSession = const _ModeSession();
+    } else {
+      _handoutResults = const [];
+      _handoutsSession = const _ModeSession();
+    }
     notifyListeners();
   }
 

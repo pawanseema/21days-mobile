@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/recording_model.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/layout_breakpoints.dart';
 
 /// Video search card aligned with media-resources `search.html` video results.
 class VideoResultCard extends StatelessWidget {
@@ -56,17 +57,22 @@ class VideoResultCard extends StatelessWidget {
                     Container(
                       color: Colors.black.withValues(alpha: 0.22),
                       alignment: Alignment.center,
-                      child: const Icon(
+                      child: Icon(
                         Icons.play_circle_fill,
                         color: Colors.white,
-                        size: 56,
+                        size: AppLayout.fontSize(context, 56),
                       ),
                     ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                padding: EdgeInsets.fromLTRB(
+                  AppLayout.space(context, 14),
+                  AppLayout.space(context, 12),
+                  AppLayout.space(context, 14),
+                  AppLayout.space(context, 14),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -75,11 +81,11 @@ class VideoResultCard extends StatelessWidget {
                           ? 'Meditation video'
                           : result.videoTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 15,
+                        fontSize: AppLayout.fontSize(context, 15),
                       ),
                     ),
                     if (result.sectionTitle.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: AppLayout.space(context, 4)),
                       Text(
                         result.sectionTitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -89,15 +95,18 @@ class VideoResultCard extends StatelessWidget {
                       ),
                     ],
                     if (showFindSimilar && onFindSimilar != null) ...[
-                      const SizedBox(height: 10),
+                      SizedBox(height: AppLayout.space(context, 10)),
                       OutlinedButton.icon(
                         onPressed: onFindSimilar,
-                        icon: const Icon(Icons.auto_awesome, size: 18),
+                        icon: Icon(
+                          Icons.auto_awesome,
+                          size: AppLayout.fontSize(context, 18),
+                        ),
                         label: const Text('Find similar clips'),
                       ),
                     ],
                     if (result.durationLabel != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppLayout.space(context, 8)),
                       Text(
                         result.durationLabel!,
                         style: theme.textTheme.labelMedium?.copyWith(
@@ -105,7 +114,7 @@ class VideoResultCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppLayout.space(context, 8)),
                     Text(
                       result.summary.isEmpty
                           ? 'No summary available'
@@ -115,11 +124,11 @@ class VideoResultCard extends StatelessWidget {
                       style: theme.textTheme.bodyMedium,
                     ),
                     if (showResultDebug && result.chakra.isNotEmpty) ...[
-                      const SizedBox(height: 10),
+                      SizedBox(height: AppLayout.space(context, 10)),
                       _Chip(label: result.chakra, accent: true),
                     ],
                     if (result.quote.isNotEmpty) ...[
-                      const SizedBox(height: 10),
+                      SizedBox(height: AppLayout.space(context, 10)),
                       Text(
                         '"${result.quote}"',
                         maxLines: 3,
