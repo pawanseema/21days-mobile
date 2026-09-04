@@ -11,6 +11,7 @@ import '../../services/search_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/layout_breakpoints.dart';
 import '../../widgets/app_content_width.dart';
+import '../../widgets/media_action_bar.dart';
 import 'youtube_embed.dart';
 
 /// In-app YouTube player for a video search hit (starts at section timestamp).
@@ -307,6 +308,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return Builder(
       builder: (context) {
         final details = _buildDetails(Theme.of(context));
+        final shareUrl = widget.result.youtubeWatchUrl;
+        final shareTitle = [
+          if (widget.result.videoTitle.isNotEmpty) widget.result.videoTitle,
+          if (widget.result.sectionTitle.isNotEmpty) widget.result.sectionTitle,
+        ].join(' — ');
+        final actions = MediaActionBar(
+          url: shareUrl,
+          title: shareTitle.isEmpty ? 'Meditation video' : shareTitle,
+        );
+
         if (scrollPlayerWithDetails) {
           return Scaffold(
             backgroundColor: context.colors.pageBlue,
@@ -320,6 +331,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             body: ListView(
               children: [
                 playerSlot,
+                actions,
                 details,
               ],
             ),
@@ -337,6 +349,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           body: Column(
             children: [
               playerSlot,
+              actions,
               Expanded(
                 child: ListView(
                   children: [details],
