@@ -92,6 +92,15 @@ class SearchProvider extends ChangeNotifier {
       ? 'Try searching for a topic from your recent sessions.'
       : 'Search for affirmations, chakras, or practice guides.';
 
+  /// Shown in the results area before the first search (Videos and Handouts).
+  String get idleTitle => _tab == ResourceTab.videos
+      ? 'Find a meditation video to watch'
+      : 'Find a meditation handout to read';
+
+  String get idleSubtitle => _tab == ResourceTab.videos
+      ? 'Search above, or tap a suggestion, and matching clips will show up here.'
+      : 'Search above, or tap a suggestion, and matching handouts will show up here.';
+
   /// Starter queries matching media-resources Explore chips.
   /// Ordered shortest-first so wrap uses less vertical space.
   List<String> get examplePrompts => _tab == ResourceTab.videos

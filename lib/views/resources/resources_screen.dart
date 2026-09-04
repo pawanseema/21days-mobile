@@ -193,7 +193,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                   TextSelection.collapsed(offset: search.query.length);
             },
           ),
-        const Divider(height: 1),
+        const Divider(height: 1, thickness: 1.2),
         Expanded(
           child: _ResultsPane(
             onOpenVideo: _openVideo,
@@ -378,6 +378,62 @@ class _RelatedBanner extends StatelessWidget {
   }
 }
 
+class _ExploreIdleState extends StatelessWidget {
+  const _ExploreIdleState({
+    required this.title,
+    required this.subtitle,
+    required this.isVideos,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool isVideos;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.colors;
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppLayout.space(context, 32),
+          vertical: AppLayout.space(context, 24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isVideos ? Icons.videocam_outlined : Icons.description_outlined,
+              size: AppLayout.fontSize(context, 40),
+              color: colors.ink.withValues(alpha: 0.38),
+            ),
+            SizedBox(height: AppLayout.space(context, 14)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colors.ink.withValues(alpha: 0.88),
+                fontWeight: FontWeight.w700,
+                fontSize: AppLayout.fontSize(context, 17),
+              ),
+            ),
+            SizedBox(height: AppLayout.space(context, 8)),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.ink.withValues(alpha: 0.62),
+                height: 1.35,
+                fontSize: AppLayout.fontSize(context, 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ResultsPane extends StatelessWidget {
   const _ResultsPane({
     required this.onOpenVideo,
@@ -455,7 +511,11 @@ class _ResultsPane extends StatelessWidget {
     }
 
     if (!search.hasQuery && !search.relatedViewActive) {
-      return const SizedBox.expand();
+      return _ExploreIdleState(
+        title: search.idleTitle,
+        subtitle: search.idleSubtitle,
+        isVideos: search.tab == ResourceTab.videos,
+      );
     }
 
     if (search.tab == ResourceTab.videos) {
