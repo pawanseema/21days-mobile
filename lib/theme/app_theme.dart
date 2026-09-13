@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../utils/layout_breakpoints.dart';
@@ -77,6 +78,11 @@ class AppTheme {
         centerTitle: true,
         backgroundColor: colors.chromeBackground,
         foregroundColor: colors.chromeForeground,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: colors.chromeBackground,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
         titleTextStyle: display.titleLarge?.copyWith(
           color: colors.chromeForeground,
           fontWeight: FontWeight.w700,

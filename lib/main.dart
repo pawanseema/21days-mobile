@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
@@ -15,10 +17,19 @@ import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
 import 'views/home/home_shell.dart';
+import 'widgets/chrome_header.dart';
 import 'widgets/notification_deep_link_binder.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Pixel / Android: match status bar to yellow chrome from first frame.
+  // (Custom PreferredSize header is not an AppBar, so overlay is not automatic.)
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    SystemChrome.setSystemUIOverlayStyle(
+      ChromeHeader.systemOverlayFor(AppPalette.skyYellow.chromeBackground),
+    );
+  }
 
   // Scaffold local notifications early so Live-tab reminders are ready.
   final notifications = NotificationService();
