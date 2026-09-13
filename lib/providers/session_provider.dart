@@ -184,14 +184,27 @@ class SessionProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
-      await _notificationService.scheduleSessionReminders(session);
+      final usedExact =
+          await _notificationService.scheduleSessionReminders(session);
       final prefs = await _prefs();
       await prefs.setString(_prefReminderSessionId, session.id);
       _remindersScheduled = true;
-      _statusMessage = 'Reminder is on — 5 minutes before start.';
+      // Android-only nuance: inexact fallback when exact alarms are denied.
+      // iOS always reports usedExact == true.
+      _statusMessage = usedExact
+          ? 'Reminder is on — 5 minutes before start.'
+          : 'Reminder is on — timing may vary slightly (exact alarms not allowed).';
     } catch (e) {
       debugPrint('Failed to schedule reminders: $e');
-      _statusMessage = 'Could not schedule a reminder on this device.';
+      final detail = e.toString();
+      final isAndroid =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      if (isAndroid && detail.contains('exact_alarms_not_permitted')) {
+        _statusMessage =
+            'Allow Alarms & reminders for 21Days in system Settings, then try again.';
+      } else {
+        _statusMessage = 'Could not schedule a reminder on this device.';
+      }
       _remindersScheduled = false;
     }
     notifyListeners();

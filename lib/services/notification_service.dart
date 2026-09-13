@@ -149,6 +149,9 @@ class NotificationService {
   }
 
   /// Request runtime permission (iOS + Android 13+).
+  ///
+  /// Each platform implementation is null on the other OS, so the unused
+  /// branch is a no-op (`?? true`).
   Future<bool> requestPermissions() async {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -166,8 +169,39 @@ class NotificationService {
     return androidGranted && iosGranted;
   }
 
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  /// Android 12+ only. iOS ignores [androidScheduleMode] on [zonedSchedule].
+  Future<AndroidScheduleMode> _resolveAndroidScheduleMode() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) {
+      return AndroidScheduleMode.inexactAllowWhileIdle;
+    }
+
+    var canExact = await android.canScheduleExactNotifications() ?? false;
+    if (!canExact) {
+      // Opens the system "Alarms & reminders" screen on supported API levels.
+      await android.requestExactAlarmsPermission();
+      canExact = await android.canScheduleExactNotifications() ?? false;
+    }
+
+    if (canExact) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
+    debugPrint(
+      'NotificationService: exact alarms not permitted; using inexact schedule.',
+    );
+    return AndroidScheduleMode.inexactAllowWhileIdle;
+  }
+
   /// Schedules one reminder at T-5 minutes. Skips if that time is already past.
-  Future<void> scheduleSessionReminders(LiveSession session) async {
+  ///
+  /// Returns whether the fire time is expected to be exact:
+  /// - iOS: always `true` (OS handles timing; no exact-alarm permission)
+  /// - Android: `true` with exact alarms, `false` after inexact fallback
+  Future<bool> scheduleSessionReminders(LiveSession session) async {
     if (!_initialized) {
       await initialize();
     }
@@ -194,6 +228,11 @@ class NotificationService {
         ? 'Live meditation'
         : session.title.trim();
 
+    // Required by the plugin API on all platforms; only Android honors it.
+    final androidMode = _isAndroid
+        ? await _resolveAndroidScheduleMode()
+        : AndroidScheduleMode.exactAllowWhileIdle;
+
     await _plugin.zonedSchedule(
       id,
       'Live session starting soon',
@@ -214,9 +253,12 @@ class NotificationService {
           presentSound: true,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: androidMode,
       payload: liveDeepLinkPayload,
     );
+
+    if (!_isAndroid) return true;
+    return androidMode == AndroidScheduleMode.exactAllowWhileIdle;
   }
 
   Future<void> cancelSessionReminders(String sessionId) async {

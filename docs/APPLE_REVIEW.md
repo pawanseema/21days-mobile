@@ -89,7 +89,7 @@ Verify:
 - [ ] Upcoming → session loads; reminder switch → iOS permission prompt
 - [ ] Reminder tap (if testable) → opens **Upcoming** tab
 - [ ] Recordings → expand session → play video
-- [ ] About (header) → opens https://www.explore21days.org/ in Safari
+- [ ] About (header) → opens https://us.sahajayoga.org/21days/ in Safari
 - [ ] Live session → **Watch on YouTube** / **Join Zoom Meeting** when status is live
 
 ### 7. Screenshots
@@ -130,7 +130,7 @@ HOW TO TEST:
 
 EXTERNAL LINKS:
 - Live sessions: Watch on YouTube (in-app player) or Join Zoom Meeting (Zoom app).
-- About in the header opens https://www.explore21days.org/
+- About in the header opens https://us.sahajayoga.org/21days/
 - Support: https://www.explore21days.org/support (sahajabayarea@gmail.com)
 
 No in-app purchases. No user accounts in this version.
