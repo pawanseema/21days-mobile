@@ -20,6 +20,10 @@ class ChromeHeader extends StatelessWidget {
   /// Yellow bar content height below the status bar.
   static const double contentHeight = 76;
 
+  /// Slightly taller on Android phones so 1.4× chrome type is not clipped.
+  static double contentHeightFor(BuildContext context) =>
+      AppLayout.isAndroidPhone(context) ? 88 : contentHeight;
+
   /// Status bar styling so Android (Pixel) matches the yellow chrome from cold start.
   /// Custom [PreferredSize] app bars do not apply [AppBarTheme.systemOverlayStyle].
   static SystemUiOverlayStyle systemOverlayFor(Color chromeBackground) {
@@ -33,7 +37,7 @@ class ChromeHeader extends StatelessWidget {
 
   /// Full AppBar height including status-bar / notch inset.
   static double preferredHeightFor(BuildContext context) =>
-      MediaQuery.paddingOf(context).top + contentHeight;
+      MediaQuery.paddingOf(context).top + contentHeightFor(context);
 
   static PreferredSize preferredSizeFor(BuildContext context) => PreferredSize(
         preferredSize: Size.fromHeight(preferredHeightFor(context)),
@@ -90,7 +94,7 @@ class ChromeHeader extends StatelessWidget {
           child: SafeArea(
             bottom: false,
             child: SizedBox(
-              height: contentHeight,
+              height: contentHeightFor(context),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(6, 4, 8, 4),
                 child: Row(
@@ -98,44 +102,38 @@ class ChromeHeader extends StatelessWidget {
                   children: [
                     ChromePortrait(height: portraitHeight),
                     Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.sizeOf(context).width - 140,
+                      // No FittedBox: scaleDown was cancelling Android chrome
+                      // 1.4× after the first layout pass (flash then shrink).
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            headline,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.ellipsis,
+                            style: display.titleLarge?.copyWith(
+                              color: colors.chromeForeground,
+                              fontWeight: FontWeight.w700,
+                              fontSize: headlineSize,
+                              height: 1.15,
+                            ),
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                headline,
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                softWrap: false,
-                                overflow: TextOverflow.ellipsis,
-                                style: display.titleLarge?.copyWith(
-                                  color: colors.chromeForeground,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: headlineSize,
-                                  height: 1.15,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                subtitle,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: display.bodyMedium?.copyWith(
-                                  color: colors.mutedInk,
-                                  fontSize: subtitleSize,
-                                  height: 1.15,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: display.bodyMedium?.copyWith(
+                              color: colors.mutedInk,
+                              fontSize: subtitleSize,
+                              height: 1.15,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                     TextButton(

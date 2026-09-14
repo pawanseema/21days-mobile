@@ -100,6 +100,16 @@ class TwentyOneDaysApp extends StatelessWidget {
               title: AppConstants.appName,
               debugShowCheckedModeBanner: false,
               theme: AppTheme.fromPalette(themes.palette),
+              // Apply Android/tablet type density once, with MediaQuery available,
+              // so HomeShell / routes do not flash unscaled then scaled (or the
+              // reverse when a bad first-frame size trips tablet 1.75×).
+              builder: (context, child) {
+                final base = Theme.of(context);
+                return Theme(
+                  data: AppTheme.densityFor(context, base),
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
               home: const HomeShell(),
             );
           },

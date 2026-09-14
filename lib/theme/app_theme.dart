@@ -204,9 +204,11 @@ class AppTheme {
   }
 
   /// Tablet → comfortable; Android phone → 1.25× type; iPhone → unchanged.
+  /// Safe to call once from [MaterialApp.builder] — do not nest again on an
+  /// already-scaled theme (would compound fontSizeFactor).
   static ThemeData densityFor(BuildContext context, ThemeData base) {
-    if (AppLayout.isComfortable(context)) return comfortableDensity(base);
     if (AppLayout.isAndroidPhone(context)) return androidPhoneDensity(base);
+    if (AppLayout.isComfortable(context)) return comfortableDensity(base);
     return base;
   }
 }

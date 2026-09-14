@@ -290,14 +290,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
-  /// Player is a pushed route — outside [HomeShell]'s Theme — so re-apply
-  /// density here (iPad comfortable / Android phone 1.25×).
-  Widget _wrapComfortable(BuildContext context, Widget child) {
-    final base = Theme.of(context);
-    final scaled = AppTheme.densityFor(context, base);
-    if (identical(scaled, base)) return child;
-    return Theme(data: scaled, child: child);
-  }
+  /// Player is a pushed route — density comes from [MaterialApp.builder].
+  Widget _wrapComfortable(BuildContext context, Widget child) => child;
 
   Widget _playerScaffold({
     required String title,

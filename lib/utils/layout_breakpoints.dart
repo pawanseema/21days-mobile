@@ -41,11 +41,28 @@ class AppLayout {
   static int exploreColumnsFor(double contentWidth) =>
       contentWidth >= exploreTwoColumnMinWidth ? 2 : 1;
 
+  /// Logical window size, correcting a known Android first-frame glitch where
+  /// [MediaQuery] briefly reports physical pixels as logical size (which would
+  /// wrongly trip tablet density, then snap back — a visible font flash).
+  static Size sizeOf(BuildContext context) {
+    final mq = MediaQuery.sizeOf(context);
+    final view = View.maybeOf(context);
+    if (view == null) return mq;
+    final dpr = view.devicePixelRatio;
+    if (dpr <= 0) return mq;
+    final viewSize = view.physicalSize / dpr;
+    if (mq.shortestSide > viewSize.shortestSide * 1.15 &&
+        viewSize.shortestSide >= 300) {
+      return viewSize;
+    }
+    return mq;
+  }
+
   /// Whether the current window should use tablet-comfortable density.
   static bool isComfortableWidth(double width) => width >= comfortableMinWidth;
 
   static bool isComfortable(BuildContext context) =>
-      isComfortableWidth(MediaQuery.sizeOf(context).width);
+      isComfortableWidth(sizeOf(context).width);
 
   /// Android phone (not tablet / not iOS).
   static bool isAndroidPhone(BuildContext context) =>
@@ -54,15 +71,16 @@ class AppLayout {
       !isComfortable(context);
 
   static double fontScaleOf(BuildContext context) {
-    if (isComfortable(context)) return comfortableFontScale;
+    // Android phone before tablet: avoids a 1.75→1.25 flash if size flickers.
     if (isAndroidPhone(context)) return androidPhoneFontScale;
+    if (isComfortable(context)) return comfortableFontScale;
     return 1.0;
   }
 
   /// Scale for yellow-chrome headline/subtitle (Android phone may differ).
   static double chromeFontScaleOf(BuildContext context) {
-    if (isComfortable(context)) return comfortableFontScale;
     if (isAndroidPhone(context)) return androidChromeFontScale;
+    if (isComfortable(context)) return comfortableFontScale;
     return 1.0;
   }
 

@@ -104,86 +104,80 @@ class _HandoutViewerScreenState extends State<HandoutViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scaled = AppTheme.densityFor(context, theme);
-
-    return Theme(
-      data: scaled,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            _title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        body: Column(
-          children: [
-            MediaActionBar(
-              url: widget.handout.downloadUrl,
-              title: _title,
-            ),
-            Expanded(
-              child: Stack(
-                children: [
-                  if (_error == null) WebViewWidget(controller: _controller),
-                  if (_loading && _error == null)
-                    const Center(child: CircularProgressIndicator()),
-                  if (_error != null)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(28),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _error!,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 18),
-                            ElevatedButton.icon(
-                              onPressed: _load,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Retry'),
-                            ),
-                          ],
-                        ),
+      ),
+      body: Column(
+        children: [
+          MediaActionBar(
+            url: widget.handout.downloadUrl,
+            title: _title,
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                if (_error == null) WebViewWidget(controller: _controller),
+                if (_loading && _error == null)
+                  const Center(child: CircularProgressIndicator()),
+                if (_error != null)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 18),
+                          ElevatedButton.icon(
+                            onPressed: _load,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-            SafeArea(
-              top: false,
-              child: Material(
-                color: context.colors.surface,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(
-                    AppLayout.space(context, 16),
-                    AppLayout.space(context, 10),
-                    AppLayout.space(context, 16),
-                    AppLayout.space(context, 10),
+          ),
+          SafeArea(
+            top: false,
+            child: Material(
+              color: context.colors.surface,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  AppLayout.space(context, 16),
+                  AppLayout.space(context, 10),
+                  AppLayout.space(context, 16),
+                  AppLayout.space(context, 10),
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: context.colors.mist),
                   ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: context.colors.mist),
-                    ),
+                ),
+                child: TextButton.icon(
+                  onPressed: _openExternally,
+                  icon: Icon(
+                    Icons.open_in_new,
+                    size: AppLayout.fontSize(context, 20),
                   ),
-                  child: TextButton.icon(
-                    onPressed: _openExternally,
-                    icon: Icon(
-                      Icons.open_in_new,
-                      size: AppLayout.fontSize(context, 20),
-                    ),
-                    label: const Text('Open externally'),
-                  ),
+                  label: const Text('Open externally'),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
