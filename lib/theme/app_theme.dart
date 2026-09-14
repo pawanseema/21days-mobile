@@ -203,7 +203,7 @@ class AppTheme {
     );
   }
 
-  /// Tablet → comfortable; Android phone → 1.35× type; iPhone → unchanged.
+  /// Tablet → comfortable; Android phone → 1.3× type; iPhone → unchanged.
   static ThemeData densityFor(BuildContext context, ThemeData base) {
     if (AppLayout.isComfortable(context)) return comfortableDensity(base);
     if (AppLayout.isAndroidPhone(context)) return androidPhoneDensity(base);
