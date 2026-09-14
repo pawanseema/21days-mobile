@@ -57,13 +57,12 @@ class ChromeHeader extends StatelessWidget {
     final display = theme.textTheme;
     final comfortable = AppLayout.isComfortable(context);
     final narrow = MediaQuery.sizeOf(context).width < 768;
-    // Phone baselines; [AppLayout.fontSize] is 1.0 on iPhone, 1.25 on Android
-    // phone, 1.75 on tablet.
+    // Phone baselines: iPhone 1.0; Android body 1.25 / chrome title 1.4; tablet 1.75.
     final portraitHeight = comfortable
         ? AppLayout.space(context, 52)
         : (narrow ? 52.0 : 64.0);
-    final headlineSize = AppLayout.fontSize(context, narrow ? 17 : 20);
-    final subtitleSize = AppLayout.fontSize(context, narrow ? 11.5 : 13);
+    final headlineSize = AppLayout.chromeFontSize(context, narrow ? 17 : 20);
+    final subtitleSize = AppLayout.chromeFontSize(context, narrow ? 11.5 : 13);
     final aboutSize = AppLayout.fontSize(context, 13);
     final overlay = systemOverlayFor(colors.chromeBackground);
 

@@ -30,6 +30,10 @@ class AppLayout {
   /// Android phone-only type scale (iPhone stays 1.0). Not applied on tablet.
   static const double androidPhoneFontScale = 1.25;
 
+  /// Android phone-only scale for yellow-chrome headline/subtitle.
+  /// Independent of [androidPhoneFontScale]; iPhone stays on [fontScaleOf].
+  static const double androidChromeFontScale = 1.4;
+
   /// Padding / vertical density scale when comfortable.
   static const double comfortableSpaceScale = 1.4;
 
@@ -55,9 +59,20 @@ class AppLayout {
     return 1.0;
   }
 
+  /// Scale for yellow-chrome headline/subtitle (Android phone may differ).
+  static double chromeFontScaleOf(BuildContext context) {
+    if (isComfortable(context)) return comfortableFontScale;
+    if (isAndroidPhone(context)) return androidChromeFontScale;
+    return 1.0;
+  }
+
   /// Phone [phoneSize] scaled for tablet / Android phone; unchanged on iPhone.
   static double fontSize(BuildContext context, double phoneSize) =>
       phoneSize * fontScaleOf(context);
+
+  /// Chrome headline/subtitle size; Android phone uses [androidChromeFontScale].
+  static double chromeFontSize(BuildContext context, double phoneSize) =>
+      phoneSize * chromeFontScaleOf(context);
 
   /// Phone padding/spacing scaled up on tablet.
   static double space(BuildContext context, double phoneSize) =>
