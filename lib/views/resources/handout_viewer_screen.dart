@@ -105,10 +105,7 @@ class _HandoutViewerScreenState extends State<HandoutViewerScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final comfortable = AppLayout.isComfortable(context);
-    final scaled = comfortable
-        ? AppTheme.comfortableDensity(theme)
-        : theme;
+    final scaled = AppTheme.densityFor(context, theme);
 
     return Theme(
       data: scaled,

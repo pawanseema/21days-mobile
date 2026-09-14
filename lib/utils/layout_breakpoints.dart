@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// Width breakpoints for tablet / wide-layout adaptation on Flutter.
 ///
 /// Independent of the desktop web shell (separate repo). Phone widths stay
-/// under the comfortable / content thresholds, so iPhone layout is unchanged.
+/// under the comfortable / content thresholds, so iPhone layout is unchanged
+/// except Android phones (see [androidPhoneFontScale]).
 class AppLayout {
   AppLayout._();
 
@@ -25,6 +27,9 @@ class AppLayout {
   /// iPhone never applies this (width stays under [comfortableMinWidth]).
   static const double comfortableFontScale = 1.75;
 
+  /// Android phone-only type scale (iPhone stays 1.0). Not applied on tablet.
+  static const double androidPhoneFontScale = 1.35;
+
   /// Padding / vertical density scale when comfortable.
   static const double comfortableSpaceScale = 1.4;
 
@@ -38,10 +43,19 @@ class AppLayout {
   static bool isComfortable(BuildContext context) =>
       isComfortableWidth(MediaQuery.sizeOf(context).width);
 
-  static double fontScaleOf(BuildContext context) =>
-      isComfortable(context) ? comfortableFontScale : 1.0;
+  /// Android phone (not tablet / not iOS).
+  static bool isAndroidPhone(BuildContext context) =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      !isComfortable(context);
 
-  /// Phone [phoneSize] scaled up on tablet; unchanged on phone.
+  static double fontScaleOf(BuildContext context) {
+    if (isComfortable(context)) return comfortableFontScale;
+    if (isAndroidPhone(context)) return androidPhoneFontScale;
+    return 1.0;
+  }
+
+  /// Phone [phoneSize] scaled for tablet / Android phone; unchanged on iPhone.
   static double fontSize(BuildContext context, double phoneSize) =>
       phoneSize * fontScaleOf(context);
 

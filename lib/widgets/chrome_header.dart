@@ -57,7 +57,8 @@ class ChromeHeader extends StatelessWidget {
     final display = theme.textTheme;
     final comfortable = AppLayout.isComfortable(context);
     final narrow = MediaQuery.sizeOf(context).width < 768;
-    // Phone baselines; [AppLayout.fontSize] is 1.0 on iPhone, 1.5 on iPad.
+    // Phone baselines; [AppLayout.fontSize] is 1.0 on iPhone, 1.35 on Android
+    // phone, 1.75 on tablet.
     final portraitHeight = comfortable
         ? AppLayout.space(context, 52)
         : (narrow ? 52.0 : 64.0);

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../providers/navigation_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/layout_breakpoints.dart';
 import '../../widgets/app_content_width.dart';
 import '../../widgets/chrome_header.dart';
 import '../live/live_screen.dart';
@@ -33,9 +32,7 @@ class HomeShell extends StatelessWidget {
     final index = nav.index.clamp(0, _pages.length - 1);
     final colors = context.colors;
     final baseTheme = Theme.of(context);
-    final theme = AppLayout.isComfortable(context)
-        ? AppTheme.comfortableDensity(baseTheme)
-        : baseTheme;
+    final theme = AppTheme.densityFor(context, baseTheme);
 
     return Theme(
       data: theme,

@@ -185,4 +185,28 @@ class AppTheme {
       ),
     );
   }
+
+  /// Android phone-only type bump ([AppLayout.androidPhoneFontScale]).
+  /// iPhone and tablet themes are unchanged by this helper.
+  static ThemeData androidPhoneDensity(ThemeData base) {
+    final fontScale = AppLayout.androidPhoneFontScale;
+    return base.copyWith(
+      textTheme: base.textTheme.apply(fontSizeFactor: fontScale),
+      primaryTextTheme: base.primaryTextTheme.apply(fontSizeFactor: fontScale),
+      bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 12 * fontScale,
+        ),
+        unselectedLabelStyle: TextStyle(fontSize: 12 * fontScale),
+      ),
+    );
+  }
+
+  /// Tablet → comfortable; Android phone → 1.35× type; iPhone → unchanged.
+  static ThemeData densityFor(BuildContext context, ThemeData base) {
+    if (AppLayout.isComfortable(context)) return comfortableDensity(base);
+    if (AppLayout.isAndroidPhone(context)) return androidPhoneDensity(base);
+    return base;
+  }
 }
