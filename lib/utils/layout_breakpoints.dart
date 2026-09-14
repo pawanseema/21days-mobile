@@ -28,7 +28,7 @@ class AppLayout {
   static const double comfortableFontScale = 1.75;
 
   /// Android phone-only type scale (iPhone stays 1.0). Not applied on tablet.
-  static const double androidPhoneFontScale = 1.3;
+  static const double androidPhoneFontScale = 1.25;
 
   /// Padding / vertical density scale when comfortable.
   static const double comfortableSpaceScale = 1.4;
