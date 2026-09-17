@@ -14,6 +14,9 @@ class RecordingResult {
     this.confidence = 0,
     this.sectionDurationSeconds,
     this.chromaId,
+    this.nextGuidedSectionTitle,
+    this.nextGuidedDurationSeconds,
+    this.practiceDurationSeconds,
   });
 
   final String videoTitle;
@@ -29,6 +32,15 @@ class RecordingResult {
   final double confidence;
   final int? sectionDurationSeconds;
   final String? chromaId;
+
+  /// Today's Meditation: following guided chapter title (optional).
+  final String? nextGuidedSectionTitle;
+
+  /// Today's Meditation: following guided chapter length (optional).
+  final int? nextGuidedDurationSeconds;
+
+  /// Today's Meditation: music + next guided seconds when provided by API.
+  final int? practiceDurationSeconds;
 
   /// Identity key matching media-resources `seedKey()` (`videoId|timestamp`).
   String get seedKey {
@@ -59,7 +71,7 @@ class RecordingResult {
   }
 
   String? get durationLabel {
-    final seconds = sectionDurationSeconds;
+    final seconds = practiceDurationSeconds ?? sectionDurationSeconds;
     if (seconds == null || seconds <= 0) return null;
     final h = seconds ~/ 3600;
     final m = (seconds % 3600) ~/ 60;
@@ -87,6 +99,9 @@ class RecordingResult {
           : 0,
       sectionDurationSeconds: json['section_duration_seconds'] as int?,
       chromaId: json['chroma_id'] as String?,
+      nextGuidedSectionTitle: json['next_guided_section_title'] as String?,
+      nextGuidedDurationSeconds: json['next_guided_duration_seconds'] as int?,
+      practiceDurationSeconds: json['practice_duration_seconds'] as int?,
     );
   }
 
@@ -105,6 +120,12 @@ class RecordingResult {
         if (sectionDurationSeconds != null)
           'section_duration_seconds': sectionDurationSeconds,
         if (chromaId != null) 'chroma_id': chromaId,
+        if (nextGuidedSectionTitle != null)
+          'next_guided_section_title': nextGuidedSectionTitle,
+        if (nextGuidedDurationSeconds != null)
+          'next_guided_duration_seconds': nextGuidedDurationSeconds,
+        if (practiceDurationSeconds != null)
+          'practice_duration_seconds': practiceDurationSeconds,
       };
 
   static int _timestampToSeconds(String ts) {

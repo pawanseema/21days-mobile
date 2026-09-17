@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/daily_meditation_provider.dart';
 import 'providers/mentor_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/recordings_provider.dart';
@@ -91,6 +92,7 @@ class TwentyOneDaysApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => RecordingsProvider()),
         ChangeNotifierProvider(create: (_) => WisdomProvider()),
+        ChangeNotifierProvider(create: (_) => DailyMeditationProvider()),
         ChangeNotifierProvider(create: (_) => MentorProvider()),
       ],
       child: NotificationDeepLinkBinder(

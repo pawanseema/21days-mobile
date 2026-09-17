@@ -139,6 +139,37 @@ class SearchService {
     return RelatedVideosResponse.fromJson(body, fallbackSeed: seed);
   }
 
+  /// POST `/api/recommendations/daily-meditation`.
+  Future<RecordingResult?> fetchDailyMeditation({
+    required String deviceId,
+    required List<Map<String, String>> exclude,
+    ApiOnRetry? onRetry,
+    ApiOnSlow? onSlow,
+  }) async {
+    final trimmed = deviceId.trim();
+    if (trimmed.isEmpty) {
+      throw SearchException('device_id is required for daily meditation.');
+    }
+
+    final body = await _postJson(
+      path: AppConstants.dailyMeditationPath,
+      payload: {
+        'device_id': trimmed,
+        'exclude': exclude,
+        'limit': 1,
+      },
+      label: 'daily meditation',
+      onRetry: onRetry,
+      onSlow: onSlow,
+    );
+
+    final count = body['count'];
+    final result = body['result'];
+    if (count is int && count < 1) return null;
+    if (result is! Map<String, dynamic>) return null;
+    return RecordingResult.fromJson(result);
+  }
+
   /// GET `/api/videos/<id>/chapters` — Chroma timestamp sections (may be empty).
   Future<List<VideoChapter>> fetchVideoChapters(String videoId) async {
     final trimmed = videoId.trim();

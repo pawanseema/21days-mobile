@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_content_width.dart';
 import '../../widgets/chrome_header.dart';
 import '../live/live_screen.dart';
+import '../more/more_screen.dart';
 import '../recordings/recordings_screen.dart';
 import '../resources/resources_screen.dart';
 import '../wisdom/wisdom_screen.dart';
@@ -13,7 +14,7 @@ import '../wisdom/wisdom_screen.dart';
 /// Root shell with bottom navigation.
 ///
 /// Wisdom UI/code remains in the repo; flip [NavigationProvider.showWisdomTab]
-/// to restore the tab.
+/// to restore the tab. More is always the last tab.
 class HomeShell extends StatelessWidget {
   const HomeShell({super.key});
 
@@ -24,6 +25,7 @@ class HomeShell extends StatelessWidget {
         const AppContentWidth(child: RecordingsScreen()),
         if (NavigationProvider.showWisdomTab)
           const AppContentWidth(child: WisdomScreen()),
+        const AppContentWidth(child: MoreScreen()),
       ];
 
   @override
@@ -81,6 +83,11 @@ class HomeShell extends StatelessWidget {
                         activeIcon: Icon(Icons.auto_awesome),
                         label: 'Wisdom',
                       ),
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.more_horiz),
+                      activeIcon: Icon(Icons.more_horiz),
+                      label: 'More',
+                    ),
                   ],
                 ),
               ],

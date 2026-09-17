@@ -25,6 +25,10 @@ class AppConstants {
   /// Related / more-like-this video sections.
   static const String relatedVideosPath = '/api/videos/related';
 
+  /// Today's Meditation recommendation picker.
+  static const String dailyMeditationPath =
+      '/api/recommendations/daily-meditation';
+
   /// Feature flags for the HTML UI (more-like-this, debug fields, etc.).
   static const String uiConfigPath = '/api/ui-config';
 

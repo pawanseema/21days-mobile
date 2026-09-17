@@ -22,6 +22,7 @@ When changing networking, models, or Live/Resources screens, prefer calling thes
 | GET | `/api/recordings` | Latest year playlist sliced into sessions (oldest-first) |
 | GET | `/api/wisdom/topics` | Static Wisdom tab topics from `config/wisdom_topics.json` |
 | GET | `/api/videos/<video_id>/chapters` | Chroma timestamp chapters (empty if not ingested) |
+| POST | `/api/recommendations/daily-meditation` | Today's Meditation: `{ device_id, exclude[] }` → one music section + practice duration |
 | POST | `/search` | `{ "query": string, "top_k"?: int }` → video timestamp sections |
 | POST | `/api/resources/search` | `{ "query": string, "top_k"?: int }` → handouts |
 

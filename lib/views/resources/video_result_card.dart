@@ -13,6 +13,8 @@ class VideoResultCard extends StatelessWidget {
     this.showFindSimilar = false,
     this.onFindSimilar,
     this.showResultDebug = false,
+    this.showSectionTitle = true,
+    this.showSummary = true,
   });
 
   final RecordingResult result;
@@ -20,6 +22,8 @@ class VideoResultCard extends StatelessWidget {
   final bool showFindSimilar;
   final VoidCallback? onFindSimilar;
   final bool showResultDebug;
+  final bool showSectionTitle;
+  final bool showSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +88,7 @@ class VideoResultCard extends StatelessWidget {
                         fontSize: AppLayout.fontSize(context, 15),
                       ),
                     ),
-                    if (result.sectionTitle.isNotEmpty) ...[
+                    if (showSectionTitle && result.sectionTitle.isNotEmpty) ...[
                       SizedBox(height: AppLayout.space(context, 4)),
                       Text(
                         result.sectionTitle,
@@ -114,15 +118,23 @@ class VideoResultCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                    SizedBox(height: AppLayout.space(context, 8)),
-                    Text(
-                      result.summary.isEmpty
-                          ? 'No summary available'
-                          : result.summary,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    if (showSummary && result.summary.isNotEmpty) ...[
+                      SizedBox(height: AppLayout.space(context, 8)),
+                      Text(
+                        result.summary,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ] else if (showSummary) ...[
+                      SizedBox(height: AppLayout.space(context, 8)),
+                      Text(
+                        'No summary available',
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
                     if (showResultDebug && result.chakra.isNotEmpty) ...[
                       SizedBox(height: AppLayout.space(context, 10)),
                       _Chip(label: result.chakra, accent: true),

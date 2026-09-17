@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Bottom-nav tab index: Explore, Upcoming (Live), Recordings, (optional Wisdom).
+/// Bottom-nav tab index: Explore, Upcoming, Recordings, (optional Wisdom), More.
 class NavigationProvider extends ChangeNotifier {
   NavigationProvider({int initialIndex = exploreTabIndex})
       : _index = _clampIndex(initialIndex);
@@ -12,14 +12,19 @@ class NavigationProvider extends ChangeNotifier {
   static const int liveTabIndex = 1;
   static const int recordingsTabIndex = 2;
 
+  /// Wisdom is index 3 when enabled; More is always last.
+  static int get wisdomTabIndex => 3;
+
+  static int get moreTabIndex => showWisdomTab ? 4 : 3;
+
   int _index;
 
   int get index => _index;
 
-  int get maxTabIndex => showWisdomTab ? 3 : 2;
+  int get maxTabIndex => moreTabIndex;
 
   static int _clampIndex(int value) {
-    final max = showWisdomTab ? 3 : 2;
+    final max = moreTabIndex;
     if (value < 0) return exploreTabIndex;
     if (value > max) return max;
     return value;
@@ -40,4 +45,6 @@ class NavigationProvider extends ChangeNotifier {
   void enterApp() => notifyListeners();
 
   void openLiveTab() => setIndex(liveTabIndex);
+
+  void openMoreTab() => setIndex(moreTabIndex);
 }
