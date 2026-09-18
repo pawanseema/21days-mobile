@@ -84,8 +84,8 @@ class HomeShell extends StatelessWidget {
                         label: 'Wisdom',
                       ),
                     const BottomNavigationBarItem(
-                      icon: Icon(Icons.more_horiz),
-                      activeIcon: Icon(Icons.more_horiz),
+                      icon: Icon(Icons.apps_outlined),
+                      activeIcon: Icon(Icons.apps),
                       label: 'More',
                     ),
                   ],

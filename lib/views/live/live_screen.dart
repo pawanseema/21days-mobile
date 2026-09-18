@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -6,15 +8,40 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/recent_recording.dart';
 import '../../models/recording_model.dart';
 import '../../models/session_model.dart';
+import '../../providers/navigation_provider.dart';
 import '../../providers/search_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/layout_breakpoints.dart';
+import '../../utils/live_countdown.dart';
 import '../resources/video_player_screen.dart';
 
 /// Live tab — current/upcoming session + recent completed streams (≤72h).
-class LiveScreen extends StatelessWidget {
+class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
+
+  @override
+  State<LiveScreen> createState() => _LiveScreenState();
+}
+
+class _LiveScreenState extends State<LiveScreen> {
+  Timer? _countdownTick;
+
+  @override
+  void initState() {
+    super.initState();
+    // Keep the relative countdown fresh while the app stays open (IndexedStack
+    // keeps this State alive across tab switches).
+    _countdownTick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _countdownTick?.cancel();
+    super.dispose();
+  }
 
   Future<void> _openExternal(BuildContext context, String url) async {
     final trimmed = url.trim();
@@ -86,20 +113,10 @@ class LiveScreen extends StatelessWidget {
     );
   }
 
-  String _countdown(LiveSession session) {
-    if (session.isLiveNow) return 'Happening now';
-    final until = session.timeUntilStart;
-    if (until == null) return 'Scheduled on YouTube';
-    if (until.isNegative) return 'Starting soon';
-    if (until.inHours >= 24) {
-      final days = until.inDays;
-      return 'In $days day${days == 1 ? '' : 's'}';
-    }
-    return 'In ${until.inHours}h ${until.inMinutes.remainder(60)}m';
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Rebuild when returning to Upcoming so the countdown is not stuck.
+    context.watch<NavigationProvider>();
     final sessionState = context.watch<SessionProvider>();
     final theme = Theme.of(context);
 
@@ -149,7 +166,7 @@ class LiveScreen extends StatelessWidget {
             _LiveSessionCard(
               session: session,
               theme: theme,
-              countdown: _countdown(session),
+              countdown: liveCountdownLabel(session),
               onWatchYouTube: () => _openLiveYouTube(context, session),
               onJoinZoom: () => _openExternal(context, session.zoomMeetingUrl),
             ),

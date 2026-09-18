@@ -77,23 +77,50 @@ class _MoreScreenState extends State<MoreScreen> {
                   AppLayout.space(context, 14),
                 ),
                 title: Text(
-                  "Today's Meditation Practice Video",
+                  "Today's Meditation",
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: context.colors.ink,
-                    fontSize: AppLayout.fontSize(context, 18),
                   ),
                 ),
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppLayout.space(context, 14),
+                      vertical: AppLayout.space(context, 12),
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFC6E4FD).withValues(alpha: 0.46),
+                          context.colors.softTeal.withValues(alpha: 0.27),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: context.colors.softTeal.withValues(alpha: 0.36),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.colors.ink.withValues(alpha: 0.12),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                        BoxShadow(
+                          color: context.colors.ink.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: Text(
                       'Find a quiet place. Sit comfortably and relaxed. '
                       'When you feel settled, click to play the meditation video below.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: context.colors.ink,
-                        height: 1.4,
-                        fontSize: AppLayout.fontSize(context, 16),
-                        fontWeight: FontWeight.w700,
+                        height: 1.45,
                       ),
                     ),
                   ),

@@ -19,6 +19,10 @@ class SessionProvider extends ChangeNotifier {
     refresh();
   }
 
+  /// User preference: keep reminding for each next upcoming session.
+  static const _prefRemindersEnabled = 'live_reminders_enabled';
+
+  /// Session id that currently has an OS one-shot scheduled (if any).
   static const _prefReminderSessionId = 'live_reminder_session_id';
 
   final SessionService _sessionService;
@@ -31,7 +35,7 @@ class SessionProvider extends ChangeNotifier {
   String? _loadingHint;
   String? _error;
   String? _recentError;
-  bool _remindersScheduled = false;
+  bool _remindersEnabled = false;
   String? _statusMessage;
 
   LiveSession? get session => _session;
@@ -41,7 +45,9 @@ class SessionProvider extends ChangeNotifier {
   String? get loadingHint => _loadingHint;
   String? get error => _error;
   String? get recentError => _recentError;
-  bool get remindersScheduled => _remindersScheduled;
+
+  /// Switch value: lasting preference, not “OS notification still pending”.
+  bool get remindersScheduled => _remindersEnabled;
   String? get statusMessage => _statusMessage;
   NotificationService get notifications => _notificationService;
 
@@ -100,8 +106,8 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Deep link from a fired reminder: open Upcoming and refresh; keep preference on.
   Future<void> openFromReminder() async {
-    await clearReminderState(notify: false);
     await refresh();
   }
 
@@ -115,82 +121,109 @@ class SessionProvider extends ChangeNotifier {
     return fireAt.isAfter(DateTime.now());
   }
 
+  Future<bool> _readRemindersEnabled(SharedPreferences prefs) async {
+    if (prefs.containsKey(_prefRemindersEnabled)) {
+      return prefs.getBool(_prefRemindersEnabled) ?? false;
+    }
+    // Migrate: older builds only stored a session id while the switch was on.
+    final legacyId = prefs.getString(_prefReminderSessionId);
+    if (legacyId != null && legacyId.isNotEmpty) {
+      await prefs.setBool(_prefRemindersEnabled, true);
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _clearScheduledNotification(SharedPreferences prefs) async {
+    final storedId =
+        prefs.getString(_prefReminderSessionId) ?? _session?.id;
+    if (storedId != null && storedId.isNotEmpty) {
+      await _notificationService.cancelSessionReminders(storedId);
+    }
+    await prefs.remove(_prefReminderSessionId);
+  }
+
+  /// Keep [live_reminders_enabled] sticky; schedule/cancel the OS one-shot as needed.
   Future<void> _syncReminderFlag() async {
     final prefs = await _prefs();
-    final storedId = prefs.getString(_prefReminderSessionId);
-    final session = _session;
+    final enabled = await _readRemindersEnabled(prefs);
+    _remindersEnabled = enabled;
 
-    if (storedId == null) {
-      _remindersScheduled = false;
-      if (session?.canRemind == true) {
-        _statusMessage = null;
-      }
-      return;
-    }
-
-    if (session == null || session.id != storedId) {
-      await _notificationService.cancelSessionReminders(storedId);
-      await prefs.remove(_prefReminderSessionId);
-      _remindersScheduled = false;
+    if (!enabled) {
+      await _clearScheduledNotification(prefs);
       _statusMessage = null;
       return;
     }
 
-    if (!_reminderStillPending(session)) {
-      await clearReminderState(notify: false);
+    final session = _session;
+    if (session == null || !_reminderStillPending(session)) {
+      await _clearScheduledNotification(prefs);
+      _statusMessage =
+          'Reminder is on — will notify 5 minutes before the next upcoming session.';
       return;
     }
 
-    _remindersScheduled = true;
-    _statusMessage = 'Reminder is on — 5 minutes before start.';
-  }
-
-  Future<void> clearReminderState({bool notify = true}) async {
-    final session = _session;
-    final prefs = await _prefs();
-    final storedId = prefs.getString(_prefReminderSessionId) ?? session?.id;
-    if (storedId != null) {
+    await _notificationService.initialize();
+    final storedId = prefs.getString(_prefReminderSessionId);
+    if (storedId != null &&
+        storedId.isNotEmpty &&
+        storedId != session.id) {
       await _notificationService.cancelSessionReminders(storedId);
     }
-    await prefs.remove(_prefReminderSessionId);
-    _remindersScheduled = false;
-    _statusMessage = null;
-    if (notify) notifyListeners();
+
+    try {
+      final usedExact =
+          await _notificationService.scheduleSessionReminders(session);
+      await prefs.setString(_prefReminderSessionId, session.id);
+      _statusMessage = usedExact
+          ? 'Reminder is on — 5 minutes before start.'
+          : 'Reminder is on — timing may vary slightly (exact alarms not allowed).';
+    } catch (e) {
+      debugPrint('SessionProvider auto-schedule failed: $e');
+      await prefs.remove(_prefReminderSessionId);
+      _statusMessage =
+          'Reminder is on — could not schedule this session yet. Pull to refresh.';
+    }
   }
 
   Future<void> disableReminders() async {
-    await clearReminderState(notify: false);
+    final prefs = await _prefs();
+    await prefs.setBool(_prefRemindersEnabled, false);
+    await _clearScheduledNotification(prefs);
+    _remindersEnabled = false;
     _statusMessage = 'Reminder turned off.';
     notifyListeners();
   }
 
   Future<void> enableReminders() async {
-    final session = _session;
-    if (session == null || !session.canRemind) return;
-    if (!_reminderStillPending(session)) {
-      _statusMessage =
-          'Too close to start time to set a 5-minute reminder.';
-      notifyListeners();
-      return;
-    }
-
+    final prefs = await _prefs();
     try {
       await _notificationService.initialize();
       final granted = await _notificationService.requestPermissions();
       if (!granted) {
         _statusMessage =
             'Notifications are off for 21Days. Enable them in Settings → 21Days → Notifications.';
-        _remindersScheduled = false;
+        _remindersEnabled = false;
+        await prefs.setBool(_prefRemindersEnabled, false);
         notifyListeners();
         return;
       }
+
+      await prefs.setBool(_prefRemindersEnabled, true);
+      _remindersEnabled = true;
+
+      final session = _session;
+      if (session == null || !_reminderStillPending(session)) {
+        await _clearScheduledNotification(prefs);
+        _statusMessage =
+            'Reminder is on — will notify 5 minutes before the next upcoming session.';
+        notifyListeners();
+        return;
+      }
+
       final usedExact =
           await _notificationService.scheduleSessionReminders(session);
-      final prefs = await _prefs();
       await prefs.setString(_prefReminderSessionId, session.id);
-      _remindersScheduled = true;
-      // Android-only nuance: inexact fallback when exact alarms are denied.
-      // iOS always reports usedExact == true.
       _statusMessage = usedExact
           ? 'Reminder is on — 5 minutes before start.'
           : 'Reminder is on — timing may vary slightly (exact alarms not allowed).';
@@ -205,7 +238,9 @@ class SessionProvider extends ChangeNotifier {
       } else {
         _statusMessage = 'Could not schedule a reminder on this device.';
       }
-      _remindersScheduled = false;
+      // Keep preference on so the next refresh can retry for a later session.
+      await prefs.setBool(_prefRemindersEnabled, true);
+      _remindersEnabled = true;
     }
     notifyListeners();
   }
