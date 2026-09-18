@@ -302,27 +302,55 @@ class _ExampleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: context.colors.listPanel,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppLayout.space(context, 12),
-            vertical: AppLayout.space(context, 7),
+    final radius = BorderRadius.circular(999);
+    // Shadow lives on Container (rounded), not Ink — Ink shadows paint as
+    // sharp rectangles on iOS/Android even when borderRadius is set.
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFF0F7FC).withValues(alpha: 0.95),
+            const Color(0xFFD9ECF8).withValues(alpha: 0.88),
+          ],
+        ),
+        border: Border.all(
+          color: context.colors.softTeal.withValues(alpha: 0.32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: context.colors.ink.withValues(alpha: 0.10),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: context.colors.mist),
+          BoxShadow(
+            color: context.colors.ink.withValues(alpha: 0.06),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
           ),
-          child: Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: context.colors.ink,
-              fontWeight: FontWeight.w600,
-              fontSize: AppLayout.fontSize(context, 12),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppLayout.space(context, 12),
+              vertical: AppLayout.space(context, 7),
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: context.colors.ink,
+                fontWeight: FontWeight.w600,
+                fontSize: AppLayout.fontSize(context, 12),
+              ),
             ),
           ),
         ),

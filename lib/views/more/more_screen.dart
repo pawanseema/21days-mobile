@@ -62,7 +62,7 @@ class _MoreScreenState extends State<MoreScreen> {
             child: Theme(
               data: theme.copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                initiallyExpanded: true,
+                initiallyExpanded: meditation.expanded,
                 onExpansionChanged: meditation.setExpanded,
                 backgroundColor: context.colors.listPanel,
                 collapsedBackgroundColor: context.colors.listPanel,
@@ -95,29 +95,30 @@ class _MoreScreenState extends State<MoreScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFFC6E4FD).withValues(alpha: 0.46),
-                          context.colors.softTeal.withValues(alpha: 0.27),
+                          const Color(0xFFF0F7FC).withValues(alpha: 0.95),
+                          const Color(0xFFD9ECF8).withValues(alpha: 0.88),
                         ],
                       ),
                       border: Border.all(
-                        color: context.colors.softTeal.withValues(alpha: 0.36),
+                        color: context.colors.softTeal.withValues(alpha: 0.32),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: context.colors.ink.withValues(alpha: 0.12),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
+                          color: context.colors.ink.withValues(alpha: 0.10),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                         BoxShadow(
-                          color: context.colors.ink.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          color: context.colors.ink.withValues(alpha: 0.06),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
                     child: Text(
-                      'Find a quiet place. Sit comfortably and relaxed. '
-                      'When you feel settled, click to play the meditation video below.',
+                      'Find a quiet, peaceful space and settle into a comfortable, '
+                      'relaxed position. When you feel ready, press play to begin '
+                      'your meditation video.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: context.colors.ink,
                         height: 1.45,

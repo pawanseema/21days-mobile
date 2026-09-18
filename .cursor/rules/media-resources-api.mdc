@@ -72,8 +72,11 @@ At most one completed livestream per configured channel, ending within
       "channel_title": "…",
       "channel_handle": "@…",
       "starts_at": "ISO-8601|null",
+      "actual_start_at": "ISO-8601|null",
+      "scheduled_start_at": "ISO-8601|null",
       "ends_at": "ISO-8601|null",
       "published_at": "ISO-8601|null",
+      "playback_start_seconds": 0,
       "youtube_watch_url": "https://www.youtube.com/watch?v=…",
       "youtube_thumbnail_url": "https://…"
     }

@@ -126,11 +126,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       if (!mounted) return;
 
       var start = widget.result.startSeconds;
-      if (chapters.isNotEmpty) {
+      if (chapters.isNotEmpty && start == 0) {
         final firstMeaningful = chapters.first.startSeconds;
-        // Same idea as Resources: open at the intended section. If we would
-        // land in the bumper (or at 0), use the first listed chapter instead.
-        if (start < firstMeaningful) {
+        // Recent/search with no explicit offset: skip bumper via first chapter.
+        if (firstMeaningful > 0) {
           start = firstMeaningful;
         }
       }

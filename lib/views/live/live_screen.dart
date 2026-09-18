@@ -93,11 +93,13 @@ class _LiveScreenState extends State<LiveScreen> {
   }
 
   void _openRecording(BuildContext context, RecentRecording recording) {
+    final startSeconds = recording.playbackStartSeconds;
     final result = RecordingResult(
       videoTitle: recording.title,
       sectionTitle: recording.channelLabel,
       videoId: recording.videoId,
       url: recording.youtubeWatchUrl,
+      timestamp: startSeconds > 0 ? _secondsToTimestamp(startSeconds) : '',
       publishedAt: (recording.startsAt ?? recording.publishedAt)?.toIso8601String() ??
           '',
     );
@@ -111,6 +113,16 @@ class _LiveScreenState extends State<LiveScreen> {
         ),
       ),
     );
+  }
+
+  static String _secondsToTimestamp(int totalSeconds) {
+    final h = totalSeconds ~/ 3600;
+    final m = (totalSeconds % 3600) ~/ 60;
+    final s = totalSeconds % 60;
+    if (h > 0) {
+      return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   @override

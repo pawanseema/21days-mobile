@@ -12,6 +12,9 @@ class RecentRecording {
     this.startsAt,
     this.endsAt,
     this.publishedAt,
+    this.actualStartAt,
+    this.scheduledStartAt,
+    this.playbackStartSeconds = 0,
   });
 
   final String id;
@@ -25,6 +28,11 @@ class RecentRecording {
   final DateTime? startsAt;
   final DateTime? endsAt;
   final DateTime? publishedAt;
+  final DateTime? actualStartAt;
+  final DateTime? scheduledStartAt;
+
+  /// Seconds into the VOD at the scheduled session start (skip early-live idle).
+  final int playbackStartSeconds;
 
   String get channelLabel {
     if (channelTitle.trim().isNotEmpty) return channelTitle.trim();
@@ -56,6 +64,18 @@ class RecentRecording {
       startsAt: parseTime(json['starts_at']),
       endsAt: parseTime(json['ends_at']),
       publishedAt: parseTime(json['published_at']),
+      actualStartAt: parseTime(json['actual_start_at']),
+      scheduledStartAt: parseTime(json['scheduled_start_at']),
+      playbackStartSeconds: _parseNonNegInt(json['playback_start_seconds']),
     );
+  }
+
+  static int _parseNonNegInt(Object? raw) {
+    if (raw is int) return raw < 0 ? 0 : raw;
+    if (raw is num) {
+      final n = raw.toInt();
+      return n < 0 ? 0 : n;
+    }
+    return 0;
   }
 }
