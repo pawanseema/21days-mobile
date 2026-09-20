@@ -96,10 +96,14 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
     }
 
     final year = state.year;
-    final sessions = year?.sessions
-            .where((session) => session.videos.isNotEmpty)
-            .toList(growable: false) ??
-        const <RecordingSession>[];
+    final sessions = <RecordingSession>[
+      ...?year?.sessions.where((session) => session.videos.isNotEmpty),
+    ];
+    sessions.sort((a, b) {
+      final aKey = a.startsAt ?? a.endsAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bKey = b.startsAt ?? b.endsAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bKey.compareTo(aKey);
+    });
     if (year == null || sessions.isEmpty) {
       return Center(
         child: Padding(
