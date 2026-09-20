@@ -26,6 +26,7 @@ class _ModeSession {
     this.relatedViewActive = false,
     this.relatedSeed,
     this.searchSnapshot,
+    this.dailyMeditationActive = false,
   });
 
   final String query;
@@ -36,6 +37,7 @@ class _ModeSession {
   final bool relatedViewActive;
   final RecordingResult? relatedSeed;
   final _SearchSnapshot? searchSnapshot;
+  final bool dailyMeditationActive;
 }
 
 /// Drives Explore: Videos / Handouts search + more-like-this for videos.
@@ -69,6 +71,17 @@ class SearchProvider extends ChangeNotifier {
   _ModeSession _videosSession = const _ModeSession();
   _ModeSession _handoutsSession = const _ModeSession();
 
+  /// Explore is showing sticky daily-meditation (not `/search`).
+  bool _dailyMeditationActive = false;
+
+  /// Reserved Videos chip / typed query for Today's Meditation.
+  static const String dailyMeditationExampleLabel =
+      'Meditation Video of the Day';
+
+  static bool isDailyMeditationQuery(String query) =>
+      query.trim().toLowerCase() ==
+      dailyMeditationExampleLabel.toLowerCase();
+
   ResourceTab get tab => _tab;
   String get query => _query;
   List<RecordingResult> get videoResults => _videoResults;
@@ -78,6 +91,8 @@ class SearchProvider extends ChangeNotifier {
   bool get isFindingRelated => _findingRelated;
   String? get error => _error;
   bool get hasQuery => _query.trim().isNotEmpty;
+  bool get dailyMeditationActive =>
+      _dailyMeditationActive && _tab == ResourceTab.videos;
   UiConfig get uiConfig => _uiConfig;
   bool get enableMoreLikeThis => _uiConfig.enableMoreLikeThis;
   bool get relatedViewActive => _relatedViewActive;
@@ -167,6 +182,7 @@ class SearchProvider extends ChangeNotifier {
         relatedViewActive: _relatedViewActive,
         relatedSeed: _relatedSeed,
         searchSnapshot: _searchSnapshot,
+        dailyMeditationActive: _dailyMeditationActive,
       );
     }
     return _ModeSession(
@@ -188,8 +204,10 @@ class SearchProvider extends ChangeNotifier {
       _relatedViewActive = session.relatedViewActive;
       _relatedSeed = session.relatedSeed;
       _searchSnapshot = session.searchSnapshot;
+      _dailyMeditationActive = session.dailyMeditationActive;
     } else {
       _handoutResults = session.handoutResults;
+      _dailyMeditationActive = false;
       _clearRelatedState();
     }
   }
@@ -208,6 +226,25 @@ class SearchProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Enter sticky daily-meditation mode (no `/search` call).
+  void enterDailyMeditationMode([String? query]) {
+    final label = (query != null && query.trim().isNotEmpty)
+        ? query.trim()
+        : dailyMeditationExampleLabel;
+    _query = label;
+    _dailyMeditationActive = true;
+    _videoResults = const [];
+    _error = null;
+    _loading = false;
+    _loadingHint = null;
+    _clearRelatedState();
+    _videosSession = _ModeSession(
+      query: label,
+      dailyMeditationActive: true,
+    );
+    notifyListeners();
+  }
+
   Future<void> search(String query) async {
     final requestedTab = _tab;
     _query = query;
@@ -215,6 +252,7 @@ class SearchProvider extends ChangeNotifier {
     if (trimmed.isEmpty) {
       _error = null;
       _loadingHint = null;
+      _dailyMeditationActive = false;
       if (requestedTab == ResourceTab.videos) {
         _videoResults = const [];
         _clearRelatedState();
@@ -227,6 +265,14 @@ class SearchProvider extends ChangeNotifier {
       return;
     }
 
+    // Reserved Videos query → sticky daily meditation (chip or typed exact match).
+    if (requestedTab == ResourceTab.videos &&
+        isDailyMeditationQuery(trimmed)) {
+      enterDailyMeditationMode(trimmed);
+      return;
+    }
+
+    _dailyMeditationActive = false;
     _loading = true;
     _loadingHint = null;
     _error = null;
@@ -384,6 +430,7 @@ class SearchProvider extends ChangeNotifier {
     _query = '';
     _error = null;
     _loadingHint = null;
+    _dailyMeditationActive = false;
     if (_tab == ResourceTab.videos) {
       _videoResults = const [];
       _clearRelatedState();

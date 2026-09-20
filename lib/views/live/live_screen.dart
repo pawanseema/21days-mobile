@@ -24,23 +24,44 @@ class LiveScreen extends StatefulWidget {
   State<LiveScreen> createState() => _LiveScreenState();
 }
 
-class _LiveScreenState extends State<LiveScreen> {
+class _LiveScreenState extends State<LiveScreen> with WidgetsBindingObserver {
   Timer? _countdownTick;
 
   @override
   void initState() {
     super.initState();
-    // Keep the relative countdown fresh while the app stays open (IndexedStack
-    // keeps this State alive across tab switches).
-    _countdownTick = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
-    });
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    _countdownTick?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopCountdownTick();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh relative labels after background idle (hours-scale, not seconds).
+    if (state == AppLifecycleState.resumed && mounted) {
+      setState(() {});
+    }
+  }
+
+  void _syncCountdownTick(bool onUpcomingTab) {
+    if (onUpcomingTab) {
+      // Slow tick only while Upcoming is visible; IndexedStack keeps State alive.
+      _countdownTick ??= Timer.periodic(const Duration(minutes: 5), (_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      _stopCountdownTick();
+    }
+  }
+
+  void _stopCountdownTick() {
+    _countdownTick?.cancel();
+    _countdownTick = null;
   }
 
   Future<void> _openExternal(BuildContext context, String url) async {
@@ -128,7 +149,8 @@ class _LiveScreenState extends State<LiveScreen> {
   @override
   Widget build(BuildContext context) {
     // Rebuild when returning to Upcoming so the countdown is not stuck.
-    context.watch<NavigationProvider>();
+    final nav = context.watch<NavigationProvider>();
+    _syncCountdownTick(nav.index == NavigationProvider.liveTabIndex);
     final sessionState = context.watch<SessionProvider>();
     final theme = Theme.of(context);
 

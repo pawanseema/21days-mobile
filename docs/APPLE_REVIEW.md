@@ -86,6 +86,7 @@ flutter run --release -d <device-id> \
 Verify:
 
 - [ ] Explore → example chip → video plays
+- [ ] Explore → "Meditation Video of the Day" chip (or exact typed phrase) → one sticky clip plays
 - [ ] Upcoming → session loads; reminder switch → iOS permission prompt
 - [ ] Reminder tap (if testable) → opens **Upcoming** tab
 - [ ] Recordings → expand session → play video
@@ -124,9 +125,10 @@ https://na21days-media-api-2g62ryauoq-uc.a.run.app
 
 HOW TO TEST:
 1. Explore → tap an example search chip (e.g. "Heart chakra meditation") → open a video.
-2. Upcoming → pull to refresh; shows the next live or upcoming session when scheduled.
-3. Recordings → expand a session → tap a video to play in the in-app player.
-4. Notifications (optional): On Upcoming, turn on "Notify 5 minutes before the session starts" when a future session is listed. iOS will ask for notification permission. Tapping the reminder opens the Upcoming tab.
+2. Explore → tap the highlighted "Meditation Video of the Day" chip (or type that exact phrase) → guidance + one recommended clip; play it. Same clip stays until played and the next ~6:00 AM local day.
+3. Upcoming → pull to refresh; shows the next live or upcoming session when scheduled.
+4. Recordings → expand a session → tap a video to play in the in-app player.
+5. Notifications (optional): On Upcoming, turn on "Notify 5 minutes before the session starts" when a future session is listed. iOS will ask for notification permission. Tapping the reminder opens the Upcoming tab.
 
 EXTERNAL LINKS:
 - Live sessions: Watch on YouTube (in-app player) or Join Zoom Meeting (Zoom app).

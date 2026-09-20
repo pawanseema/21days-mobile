@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/handout_model.dart';
 import '../../models/recording_model.dart';
+import '../../providers/daily_meditation_provider.dart';
 import '../../providers/search_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/layout_breakpoints.dart';
@@ -56,8 +57,26 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     setState(() => _draftEmpty = search.query.trim().isEmpty);
   }
 
-  void _runSearch(String query) {
-    context.read<SearchProvider>().search(query);
+  Future<void> _runSearch(String query) async {
+    final search = context.read<SearchProvider>();
+    final trimmed = query.trim();
+    if (search.tab == ResourceTab.videos &&
+        SearchProvider.isDailyMeditationQuery(trimmed)) {
+      await _activateDailyMeditation(trimmed);
+      return;
+    }
+    search.search(query);
+  }
+
+  Future<void> _activateDailyMeditation([String? query]) async {
+    final label = (query != null && query.trim().isNotEmpty)
+        ? query.trim()
+        : SearchProvider.dailyMeditationExampleLabel;
+    _controller.text = label;
+    _controller.selection = TextSelection.collapsed(offset: label.length);
+    setState(() => _draftEmpty = false);
+    context.read<SearchProvider>().enterDailyMeditationMode(label);
+    await context.read<DailyMeditationProvider>().ensureLoaded();
   }
 
   void _applyExample(String text) {
@@ -78,8 +97,13 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     if (!hasId && item.youtubeWatchUrl.isEmpty) return;
 
     if (!mounted) return;
-    final showResultDebug =
-        context.read<SearchProvider>().uiConfig.showResultDebug;
+    final search = context.read<SearchProvider>();
+    final showResultDebug = search.uiConfig.showResultDebug;
+    final dailyMode = search.dailyMeditationActive;
+    if (dailyMode) {
+      await context.read<DailyMeditationProvider>().markPlayed();
+    }
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => VideoPlayerScreen(
@@ -88,8 +112,8 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
         ),
       ),
     );
-    // Match HTML: engage seed after the player is closed.
-    if (!mounted) return;
+    // Match HTML: engage seed after the player is closed (normal search only).
+    if (!mounted || dailyMode) return;
     context.read<SearchProvider>().markEngaged(item);
   }
 
@@ -175,6 +199,12 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                       _ExampleChip(
                         label: prompt,
                         onTap: () => _applyExample(prompt),
+                      ),
+                    if (search.tab == ResourceTab.videos)
+                      _ExampleChip(
+                        label: SearchProvider.dailyMeditationExampleLabel,
+                        emphasized: true,
+                        onTap: () => _activateDailyMeditation(),
                       ),
                   ],
                 ),
@@ -294,39 +324,51 @@ class _ExampleChip extends StatelessWidget {
   const _ExampleChip({
     required this.label,
     required this.onTap,
+    this.emphasized = false,
   });
 
   final String label;
   final VoidCallback onTap;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = context.colors;
     final radius = BorderRadius.circular(999);
     // Shadow lives on Container (rounded), not Ink — Ink shadows paint as
     // sharp rectangles on iOS/Android even when borderRadius is set.
+    final gradientColors = emphasized
+        ? [
+            const Color(0xFFFFF6EC).withValues(alpha: 0.98),
+            const Color(0xFFE8F4FB).withValues(alpha: 0.92),
+          ]
+        : [
+            const Color(0xFFF0F7FC).withValues(alpha: 0.95),
+            const Color(0xFFD9ECF8).withValues(alpha: 0.88),
+          ];
     return Container(
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFF0F7FC).withValues(alpha: 0.95),
-            const Color(0xFFD9ECF8).withValues(alpha: 0.88),
-          ],
+          colors: gradientColors,
         ),
         border: Border.all(
-          color: context.colors.softTeal.withValues(alpha: 0.32),
+              color: emphasized
+                  ? colors.accent.withValues(alpha: 0.72)
+                  : colors.softTeal.withValues(alpha: 0.32),
+          width: emphasized ? 1.4 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: context.colors.ink.withValues(alpha: 0.10),
-            blurRadius: 8,
+            color: colors.ink.withValues(alpha: emphasized ? 0.12 : 0.10),
+            blurRadius: emphasized ? 10 : 8,
             offset: const Offset(0, 3),
           ),
           BoxShadow(
-            color: context.colors.ink.withValues(alpha: 0.06),
+            color: colors.ink.withValues(alpha: 0.06),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -341,16 +383,29 @@ class _ExampleChip extends StatelessWidget {
           borderRadius: radius,
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: AppLayout.space(context, 12),
-              vertical: AppLayout.space(context, 7),
+              horizontal: AppLayout.space(context, emphasized ? 13 : 12),
+              vertical: AppLayout.space(context, emphasized ? 8 : 7),
             ),
-            child: Text(
-              label,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: context.colors.ink,
-                fontWeight: FontWeight.w600,
-                fontSize: AppLayout.fontSize(context, 12),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (emphasized) ...[
+                  Icon(
+                    Icons.self_improvement_outlined,
+                    size: AppLayout.fontSize(context, 15),
+                    color: colors.deepTeal.withValues(alpha: 0.85),
+                  ),
+                  SizedBox(width: AppLayout.space(context, 6)),
+                ],
+                Text(
+                  label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colors.ink,
+                    fontWeight: emphasized ? FontWeight.w700 : FontWeight.w600,
+                    fontSize: AppLayout.fontSize(context, 12),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -476,6 +531,10 @@ class _ResultsPane extends StatelessWidget {
     final search = context.watch<SearchProvider>();
     final theme = Theme.of(context);
 
+    if (search.dailyMeditationActive) {
+      return _DailyMeditationResults(onOpenVideo: onOpenVideo);
+    }
+
     if (search.isLoading) {
       return Center(
         child: Column(
@@ -582,6 +641,171 @@ class _ResultsPane extends StatelessWidget {
           onTap: () => onOpenHandout(item),
         );
       },
+    );
+  }
+}
+
+class _DailyMeditationResults extends StatelessWidget {
+  const _DailyMeditationResults({required this.onOpenVideo});
+
+  final Future<void> Function(RecordingResult item) onOpenVideo;
+
+  static const _title = 'Recommended Meditation Video for Today';
+  static const _playedSubtitle = 'A new recommendation comes tomorrow.';
+  static const _guidance =
+      'Find a quiet, peaceful space and settle into a comfortable, '
+      'relaxed position. When you feel ready, press play and follow '
+      'along to get into meditation.';
+
+  @override
+  Widget build(BuildContext context) {
+    final meditation = context.watch<DailyMeditationProvider>();
+    final theme = Theme.of(context);
+    final colors = context.colors;
+    final result = meditation.activeResult;
+
+    if (meditation.loading && result == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(28),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (meditation.error != null && result == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                meditation.error!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 18),
+              ElevatedButton.icon(
+                onPressed: () => meditation.ensureLoaded(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try again'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (result == null) {
+      return Center(
+        child: Text(
+          'No meditation recommendation is available right now.',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        AppLayout.space(context, 16),
+        AppLayout.space(context, 14),
+        AppLayout.space(context, 16),
+        AppLayout.space(context, 24),
+      ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Material(
+            color: colors.listPanel,
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(
+                AppLayout.space(context, 12),
+                AppLayout.space(context, 14),
+                AppLayout.space(context, 12),
+                AppLayout.space(context, 14),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colors.mist),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    _title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: colors.ink,
+                    ),
+                  ),
+                  if (meditation.wasPlayed) ...[
+                    SizedBox(height: AppLayout.space(context, 6)),
+                    Text(
+                      _playedSubtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colors.mutedInk,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: AppLayout.space(context, 12)),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppLayout.space(context, 14),
+                      vertical: AppLayout.space(context, 12),
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFF0F7FC).withValues(alpha: 0.95),
+                          const Color(0xFFD9ECF8).withValues(alpha: 0.88),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: colors.softTeal.withValues(alpha: 0.32),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.ink.withValues(alpha: 0.10),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: colors.ink.withValues(alpha: 0.06),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      _guidance,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colors.ink,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: AppLayout.space(context, 12)),
+                  VideoResultCard(
+                    result: result,
+                    onTap: () => onOpenVideo(result),
+                    showSectionTitle: false,
+                    showSummary: false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

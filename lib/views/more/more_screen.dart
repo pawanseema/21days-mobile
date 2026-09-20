@@ -117,8 +117,8 @@ class _MoreScreenState extends State<MoreScreen> {
                     ),
                     child: Text(
                       'Find a quiet, peaceful space and settle into a comfortable, '
-                      'relaxed position. When you feel ready, press play to begin '
-                      'your meditation video.',
+                      'relaxed position. When you feel ready, press play and follow '
+                      'along to get into meditation.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: context.colors.ink,
                         height: 1.45,

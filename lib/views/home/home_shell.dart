@@ -13,8 +13,9 @@ import '../wisdom/wisdom_screen.dart';
 
 /// Root shell with bottom navigation.
 ///
-/// Wisdom UI/code remains in the repo; flip [NavigationProvider.showWisdomTab]
-/// to restore the tab. More is always the last tab.
+/// Wisdom / More UI remain in the repo; flip
+/// [NavigationProvider.showWisdomTab] / [NavigationProvider.showMoreTab]
+/// to restore those tabs. Daily meditation is on Explore when More is hidden.
 class HomeShell extends StatelessWidget {
   const HomeShell({super.key});
 
@@ -25,7 +26,8 @@ class HomeShell extends StatelessWidget {
         const AppContentWidth(child: RecordingsScreen()),
         if (NavigationProvider.showWisdomTab)
           const AppContentWidth(child: WisdomScreen()),
-        const AppContentWidth(child: MoreScreen()),
+        if (NavigationProvider.showMoreTab)
+          const AppContentWidth(child: MoreScreen()),
       ];
 
   @override
@@ -83,11 +85,12 @@ class HomeShell extends StatelessWidget {
                         activeIcon: Icon(Icons.auto_awesome),
                         label: 'Wisdom',
                       ),
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.apps_outlined),
-                      activeIcon: Icon(Icons.apps),
-                      label: 'More',
-                    ),
+                    if (NavigationProvider.showMoreTab)
+                      const BottomNavigationBarItem(
+                        icon: Icon(Icons.apps_outlined),
+                        activeIcon: Icon(Icons.apps),
+                        label: 'More',
+                      ),
                   ],
                 ),
               ],
