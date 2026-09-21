@@ -35,37 +35,105 @@ class ResponsiveResultList extends StatelessWidget {
         return ListView.builder(
           padding: padding,
           itemCount: rowCount,
-          itemBuilder: (context, row) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: row == rowCount - 1 ? 0 : AppLayout.exploreGridGap,
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var col = 0; col < columns; col++) ...[
-                      if (col > 0)
-                        const SizedBox(width: AppLayout.exploreGridGap),
-                      Expanded(
-                        child: Builder(
-                          builder: (context) {
-                            final index = row * columns + col;
-                            if (index >= itemCount) {
-                              return const SizedBox.shrink();
-                            }
-                            return itemBuilder(context, index);
-                          },
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          },
+          itemBuilder: (context, row) => _resultRow(
+            context,
+            row: row,
+            rowCount: rowCount,
+            columns: columns,
+            itemCount: itemCount,
+            itemBuilder: itemBuilder,
+          ),
         );
       },
     );
   }
+}
+
+/// Same card layout as [ResponsiveResultList], as a [CustomScrollView] sliver.
+class ResponsiveResultSliver extends StatelessWidget {
+  const ResponsiveResultSliver({
+    super.key,
+    required this.itemCount,
+    required this.itemBuilder,
+    this.padding = const EdgeInsets.fromLTRB(16, 12, 16, 28),
+  });
+
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final columns =
+            AppLayout.exploreColumnsFor(constraints.crossAxisExtent);
+        if (columns <= 1) {
+          return SliverPadding(
+            padding: padding,
+            sliver: SliverList.separated(
+              itemCount: itemCount,
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: AppLayout.exploreGridGap),
+              itemBuilder: itemBuilder,
+            ),
+          );
+        }
+
+        final rowCount = (itemCount + columns - 1) ~/ columns;
+        return SliverPadding(
+          padding: padding,
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, row) => _resultRow(
+                context,
+                row: row,
+                rowCount: rowCount,
+                columns: columns,
+                itemCount: itemCount,
+                itemBuilder: itemBuilder,
+              ),
+              childCount: rowCount,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Widget _resultRow(
+  BuildContext context, {
+  required int row,
+  required int rowCount,
+  required int columns,
+  required int itemCount,
+  required IndexedWidgetBuilder itemBuilder,
+}) {
+  return Padding(
+    padding: EdgeInsets.only(
+      bottom: row == rowCount - 1 ? 0 : AppLayout.exploreGridGap,
+    ),
+    child: IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var col = 0; col < columns; col++) ...[
+            if (col > 0) const SizedBox(width: AppLayout.exploreGridGap),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final index = row * columns + col;
+                  if (index >= itemCount) {
+                    return const SizedBox.shrink();
+                  }
+                  return itemBuilder(context, index);
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }

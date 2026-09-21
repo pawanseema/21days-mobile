@@ -151,84 +151,89 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     final padH = AppLayout.space(context, 20);
     final padTop = AppLayout.space(context, 10);
 
-    return Column(
-      children: [
-        Padding(
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
           padding: EdgeInsets.fromLTRB(padH, padTop, padH, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _ExploreModeToggle(
-                tab: search.tab,
-                onSelect: _selectTab,
-              ),
-              SizedBox(height: AppLayout.space(context, 14)),
-              TextField(
-                controller: _controller,
-                textInputAction: TextInputAction.search,
-                onSubmitted: _runSearch,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontSize: AppLayout.fontSize(context, 16),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ExploreModeToggle(
+                  tab: search.tab,
+                  onSelect: _selectTab,
+                ),
+                SizedBox(height: AppLayout.space(context, 14)),
+                TextField(
+                  controller: _controller,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: _runSearch,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: AppLayout.fontSize(context, 16),
+                      ),
+                  decoration: InputDecoration(
+                    hintText: search.searchHint,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: AppLayout.fontSize(context, 24),
                     ),
-                decoration: InputDecoration(
-                  hintText: search.searchHint,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    size: AppLayout.fontSize(context, 24),
+                    suffixIcon: !_draftEmpty
+                        ? IconButton(
+                            onPressed: _clearSearch,
+                            icon: Icon(
+                              Icons.clear,
+                              size: AppLayout.fontSize(context, 22),
+                            ),
+                          )
+                        : null,
                   ),
-                  suffixIcon: !_draftEmpty
-                      ? IconButton(
-                          onPressed: _clearSearch,
-                          icon: Icon(
-                            Icons.clear,
-                            size: AppLayout.fontSize(context, 22),
-                          ),
-                        )
-                      : null,
                 ),
-              ),
-              if (_draftEmpty &&
-                  !search.hasQuery &&
-                  !search.relatedViewActive) ...[
-                SizedBox(height: AppLayout.space(context, 12)),
-                Wrap(
-                  spacing: AppLayout.space(context, 8),
-                  runSpacing: AppLayout.space(context, 8),
-                  children: [
-                    for (final prompt in search.examplePrompts)
-                      _ExampleChip(
-                        label: prompt,
-                        onTap: () => _applyExample(prompt),
-                      ),
-                    if (search.tab == ResourceTab.videos)
-                      _ExampleChip(
-                        label: SearchProvider.dailyMeditationExampleLabel,
-                        emphasized: true,
-                        onTap: () => _activateDailyMeditation(),
-                      ),
-                  ],
-                ),
+                if (_draftEmpty &&
+                    !search.hasQuery &&
+                    !search.relatedViewActive) ...[
+                  SizedBox(height: AppLayout.space(context, 12)),
+                  Wrap(
+                    spacing: AppLayout.space(context, 8),
+                    runSpacing: AppLayout.space(context, 8),
+                    children: [
+                      for (final prompt in search.examplePrompts)
+                        _ExampleChip(
+                          label: prompt,
+                          onTap: () => _applyExample(prompt),
+                        ),
+                      if (search.tab == ResourceTab.videos)
+                        _ExampleChip(
+                          label: SearchProvider.dailyMeditationExampleLabel,
+                          emphasized: true,
+                          onTap: () => _activateDailyMeditation(),
+                        ),
+                    ],
+                  ),
+                ],
+                SizedBox(height: AppLayout.space(context, 10)),
               ],
-              SizedBox(height: AppLayout.space(context, 10)),
-            ],
+            ),
           ),
         ),
         if (search.tab == ResourceTab.videos && search.relatedViewActive)
-          _RelatedBanner(
-            search: search,
-            onBack: () {
-              search.backToSearchResults();
-              _controller.text = search.query;
-              _controller.selection =
-                  TextSelection.collapsed(offset: search.query.length);
-            },
+          SliverToBoxAdapter(
+            child: _RelatedBanner(
+              search: search,
+              onBack: () {
+                search.backToSearchResults();
+                _controller.text = search.query;
+                _controller.selection =
+                    TextSelection.collapsed(offset: search.query.length);
+              },
+            ),
           ),
-        const Divider(height: 1, thickness: 1.2),
-        Expanded(
-          child: _ResultsPane(
-            onOpenVideo: _openVideo,
-            onOpenHandout: _openHandout,
-          ),
+        const SliverToBoxAdapter(
+          child: Divider(height: 1, thickness: 1.2),
+        ),
+        ..._ExploreResultSlivers.build(
+          context: context,
+          onOpenVideo: _openVideo,
+          onOpenHandout: _openHandout,
         ),
       ],
     );
@@ -517,131 +522,166 @@ class _ExploreIdleState extends StatelessWidget {
   }
 }
 
-class _ResultsPane extends StatelessWidget {
-  const _ResultsPane({
-    required this.onOpenVideo,
-    required this.onOpenHandout,
-  });
+class _ExploreResultSlivers {
+  _ExploreResultSlivers._();
 
-  final Future<void> Function(RecordingResult item) onOpenVideo;
-  final Future<void> Function(HandoutResult item) onOpenHandout;
-
-  @override
-  Widget build(BuildContext context) {
+  static List<Widget> build({
+    required BuildContext context,
+    required Future<void> Function(RecordingResult item) onOpenVideo,
+    required Future<void> Function(HandoutResult item) onOpenHandout,
+  }) {
     final search = context.watch<SearchProvider>();
     final theme = Theme.of(context);
 
+    Widget fill(Widget child) => SliverFillRemaining(
+          hasScrollBody: false,
+          child: child,
+        );
+
     if (search.dailyMeditationActive) {
-      return _DailyMeditationResults(onOpenVideo: onOpenVideo);
+      return [
+        SliverToBoxAdapter(
+          child: _DailyMeditationResults(onOpenVideo: onOpenVideo),
+        ),
+      ];
     }
 
     if (search.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 14),
-            Text(
-              search.loadingMessage,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
+      return [
+        fill(
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 14),
+                Text(
+                  search.loadingMessage,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      );
+      ];
     }
 
     if (search.error != null &&
         !(search.relatedViewActive &&
             search.error == 'No similar segments found.')) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                search.error!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
+      return [
+        fill(
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    search.error!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (search.relatedViewActive &&
+                          search.relatedSeed != null) {
+                        search.findSimilarClips(search.relatedSeed!);
+                      } else {
+                        search.search(search.query);
+                      }
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                onPressed: () {
-                  if (search.relatedViewActive && search.relatedSeed != null) {
-                    search.findSimilarClips(search.relatedSeed!);
-                  } else {
-                    search.search(search.query);
-                  }
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-            ],
+            ),
           ),
         ),
-      );
+      ];
     }
 
     if (search.relatedViewActive && search.videoResults.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            search.error ?? 'No similar segments found.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyLarge,
+      return [
+        fill(
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                search.error ?? 'No similar segments found.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+            ),
           ),
         ),
-      );
+      ];
     }
 
     if (!search.hasQuery && !search.relatedViewActive) {
-      return _ExploreIdleState(
-        title: search.idleTitle,
-        subtitle: search.idleSubtitle,
-        isVideos: search.tab == ResourceTab.videos,
-      );
+      return [
+        fill(
+          _ExploreIdleState(
+            title: search.idleTitle,
+            subtitle: search.idleSubtitle,
+            isVideos: search.tab == ResourceTab.videos,
+          ),
+        ),
+      ];
     }
 
     if (search.tab == ResourceTab.videos) {
       if (search.videoResults.isEmpty) {
-        return const Center(
-          child: Text('No results found. Try a different search query.'),
-        );
+        return [
+          fill(
+            const Center(
+              child: Text('No results found. Try a different search query.'),
+            ),
+          ),
+        ];
       }
-      return ResponsiveResultList(
-        itemCount: search.videoResults.length,
-        itemBuilder: (context, index) {
-          final item = search.videoResults[index];
-          return VideoResultCard(
-            result: item,
-            showFindSimilar: search.showFindSimilarOn(item),
-            onFindSimilar: () => search.findSimilarClips(item),
-            showResultDebug: search.uiConfig.showResultDebug,
-            onTap: () => onOpenVideo(item),
-          );
-        },
-      );
+      return [
+        ResponsiveResultSliver(
+          itemCount: search.videoResults.length,
+          itemBuilder: (context, index) {
+            final item = search.videoResults[index];
+            return VideoResultCard(
+              result: item,
+              showFindSimilar: search.showFindSimilarOn(item),
+              onFindSimilar: () => search.findSimilarClips(item),
+              showResultDebug: search.uiConfig.showResultDebug,
+              onTap: () => onOpenVideo(item),
+            );
+          },
+        ),
+      ];
     }
 
     if (search.handoutResults.isEmpty) {
-      return const Center(
-        child: Text('No results found. Try a different search query.'),
-      );
+      return [
+        fill(
+          const Center(
+            child: Text('No results found. Try a different search query.'),
+          ),
+        ),
+      ];
     }
-    return ResponsiveResultList(
-      itemCount: search.handoutResults.length,
-      itemBuilder: (context, index) {
-        final item = search.handoutResults[index];
-        return HandoutResultCard(
-          result: item,
-          showResultDebug: search.uiConfig.showResultDebug,
-          onTap: () => onOpenHandout(item),
-        );
-      },
-    );
+    return [
+      ResponsiveResultSliver(
+        itemCount: search.handoutResults.length,
+        itemBuilder: (context, index) {
+          final item = search.handoutResults[index];
+          return HandoutResultCard(
+            result: item,
+            showResultDebug: search.uiConfig.showResultDebug,
+            onTap: () => onOpenHandout(item),
+          );
+        },
+      ),
+    ];
   }
 }
 
@@ -707,7 +747,8 @@ class _DailyMeditationResults extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
+    // Parent Explore [CustomScrollView] owns scrolling — no nested scroll view.
+    return Padding(
       padding: EdgeInsets.fromLTRB(
         AppLayout.space(context, 16),
         AppLayout.space(context, 14),

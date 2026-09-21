@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart';
 
 /// Width breakpoints for tablet / wide-layout adaptation on Flutter.
 ///
-/// Independent of the desktop web shell (separate repo). Phone widths stay
-/// under the comfortable / content thresholds, so iPhone layout is unchanged
-/// except Android phones (see [androidPhoneFontScale]).
+/// Independent of the desktop web shell (separate repo). Phone layouts stay
+/// phone-scaled even in landscape; tablets use comfortable density via
+/// [shortestSide], not landscape width alone.
 class AppLayout {
   AppLayout._();
 
@@ -19,12 +19,15 @@ class AppLayout {
   /// Gap between Explore result cards in a row.
   static const double exploreGridGap = 12;
 
-  /// At or above this screen width, use larger type and control padding.
-  /// iPhones stay below this; iPads (and wide windows) go above.
+  /// Legacy width gate (kept for call sites / docs). Prefer [isComfortable].
   static const double comfortableMinWidth = 700;
 
+  /// Tablet-class devices (iPad, large Android tablets). Phone landscape is
+  /// often wider than [comfortableMinWidth] but still phone-height — those
+  /// must not get 1.75× type or the yellow chrome overflows.
+  static const double comfortableMinShortestSide = 600;
+
   /// Type / control scale when [isComfortable] is true.
-  /// iPhone never applies this (width stays under [comfortableMinWidth]).
   static const double comfortableFontScale = 1.75;
 
   /// Android phone-only type scale (iPhone stays 1.0). Not applied on tablet.
@@ -59,10 +62,15 @@ class AppLayout {
   }
 
   /// Whether the current window should use tablet-comfortable density.
+  ///
+  /// Uses [shortestSide] so phone landscape (wide but short) stays phone scale.
+  static bool isComfortableSize(Size size) =>
+      size.shortestSide >= comfortableMinShortestSide;
+
   static bool isComfortableWidth(double width) => width >= comfortableMinWidth;
 
   static bool isComfortable(BuildContext context) =>
-      isComfortableWidth(sizeOf(context).width);
+      isComfortableSize(sizeOf(context));
 
   /// Android phone (not tablet / not iOS).
   static bool isAndroidPhone(BuildContext context) =>

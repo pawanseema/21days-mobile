@@ -125,6 +125,7 @@ class SearchProvider extends ChangeNotifier {
           'Heart chakra meditation',
           'Meditation and Daily Life',
           "Founder's talk on Innocence",
+          'Experience the silence within',
           'What is Sahaja Yoga Meditation?',
         ]
       : const [
