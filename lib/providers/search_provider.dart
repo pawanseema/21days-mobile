@@ -120,6 +120,7 @@ class SearchProvider extends ChangeNotifier {
   /// Ordered shortest-first so wrap uses less vertical space.
   List<String> get examplePrompts => _tab == ResourceTab.videos
       ? const [
+          'How to do Foot Soak',
           'Foot Soak with Mark',
           'Meditation with Flute',
           'Heart chakra meditation',
