@@ -18,6 +18,7 @@ import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
 import 'views/home/home_shell.dart';
+import 'widgets/app_update_notice.dart';
 import 'widgets/chrome_header.dart';
 import 'widgets/notification_deep_link_binder.dart';
 
@@ -112,7 +113,7 @@ class TwentyOneDaysApp extends StatelessWidget {
                   child: child ?? const SizedBox.shrink(),
                 );
               },
-              home: const HomeShell(),
+              home: const AppUpdateNotice(child: HomeShell()),
             );
           },
         ),

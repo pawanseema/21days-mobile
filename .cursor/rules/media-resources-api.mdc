@@ -184,6 +184,7 @@ Map these in `RecordingResult` / `HandoutResult` / `LiveSession` / `YearRecordin
 - Related banner: “Showing more like: …” + **← Back to Search Result**
 - Handout card tap → open `download_url` externally
 - Respect `GET /api/ui-config` → `enableMoreLikeThis` (default true)
+- Optional `latestIosVersion` / `latestAndroidVersion` (empty string = no update notice). Phones only; ignore on web. A failed or unreadable version check stays silent.
 - Match card fields from sibling `ui/search.html`
 
 ## Conventions

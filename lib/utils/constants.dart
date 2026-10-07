@@ -30,7 +30,15 @@ class AppConstants {
       '/api/recommendations/daily-meditation';
 
   /// Feature flags for the HTML UI (more-like-this, debug fields, etc.).
+  /// Also carries optional `latestIosVersion` / `latestAndroidVersion`.
   static const String uiConfigPath = '/api/ui-config';
+
+  /// App Store page for Explore 21 Days (track id 6807467774).
+  static const String iosStoreUrl = 'https://apps.apple.com/app/id6807467774';
+
+  /// Play Store page for applicationId com.sahajayoga.twenty_one_days.
+  static const String androidStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.sahajayoga.twenty_one_days';
 
   /// Current / next live meditation session (YouTube + Zoom links).
   static const String liveSessionsPath = '/api/live/sessions';

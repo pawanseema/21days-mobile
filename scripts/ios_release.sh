@@ -33,6 +33,8 @@ flutter pub get
 flutter build ipa --release \
   --dart-define="API_BASE_URL=${API_BASE_URL}"
 
+"$ROOT/scripts/record_store_version.sh" ios
+
 echo ""
 echo "==> Done. IPA path:"
 ls -1 build/ios/ipa/*.ipa 2>/dev/null || echo "    (check build/ios/archive for Xcode export)"

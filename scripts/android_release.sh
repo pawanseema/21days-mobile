@@ -38,6 +38,8 @@ flutter pub get
 flutter build appbundle --release \
   --dart-define="API_BASE_URL=${API_BASE_URL}"
 
+"$ROOT/scripts/record_store_version.sh" android
+
 echo ""
 echo "==> Done. AAB path:"
 ls -1 build/app/outputs/bundle/release/*.aab 2>/dev/null || echo "    (check build/app/outputs/bundle/release/)"
