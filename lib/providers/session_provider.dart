@@ -25,6 +25,10 @@ class SessionProvider extends ChangeNotifier {
   /// Session id that currently has an OS one-shot scheduled (if any).
   static const _prefReminderSessionId = 'live_reminder_session_id';
 
+  /// `1` after the one-time wipe of pre-108 reminder copies.
+  static const _prefReminderScheduleVersion = 'live_reminder_schedule_version';
+  static const _stableReminderScheduleVersion = 1;
+
   final SessionService _sessionService;
   final NotificationService _notificationService;
   final SharedPreferences? _prefsOverride;
@@ -134,18 +138,27 @@ class SessionProvider extends ChangeNotifier {
     return false;
   }
 
+  /// Drops alerts scheduled under the old per-launch hash, once per install.
+  Future<void> _migrateReminderIds(SharedPreferences prefs) async {
+    final version = prefs.getInt(_prefReminderScheduleVersion) ?? 0;
+    if (version >= _stableReminderScheduleVersion) return;
+    await _notificationService.initialize();
+    await _notificationService.cancelAll();
+    await prefs.setInt(
+      _prefReminderScheduleVersion,
+      _stableReminderScheduleVersion,
+    );
+  }
+
   Future<void> _clearScheduledNotification(SharedPreferences prefs) async {
-    final storedId =
-        prefs.getString(_prefReminderSessionId) ?? _session?.id;
-    if (storedId != null && storedId.isNotEmpty) {
-      await _notificationService.cancelSessionReminders(storedId);
-    }
+    await _notificationService.cancelLiveReminder();
     await prefs.remove(_prefReminderSessionId);
   }
 
   /// Keep [live_reminders_enabled] sticky; schedule/cancel the OS one-shot as needed.
   Future<void> _syncReminderFlag() async {
     final prefs = await _prefs();
+    await _migrateReminderIds(prefs);
     final enabled = await _readRemindersEnabled(prefs);
     _remindersEnabled = enabled;
 
@@ -164,12 +177,6 @@ class SessionProvider extends ChangeNotifier {
     }
 
     await _notificationService.initialize();
-    final storedId = prefs.getString(_prefReminderSessionId);
-    if (storedId != null &&
-        storedId.isNotEmpty &&
-        storedId != session.id) {
-      await _notificationService.cancelSessionReminders(storedId);
-    }
 
     try {
       final usedExact =
@@ -188,6 +195,7 @@ class SessionProvider extends ChangeNotifier {
 
   Future<void> disableReminders() async {
     final prefs = await _prefs();
+    await _migrateReminderIds(prefs);
     await prefs.setBool(_prefRemindersEnabled, false);
     await _clearScheduledNotification(prefs);
     _remindersEnabled = false;
@@ -198,6 +206,7 @@ class SessionProvider extends ChangeNotifier {
   Future<void> enableReminders() async {
     final prefs = await _prefs();
     try {
+      await _migrateReminderIds(prefs);
       await _notificationService.initialize();
       final granted = await _notificationService.requestPermissions();
       if (!granted) {

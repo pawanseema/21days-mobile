@@ -18,6 +18,10 @@ class NotificationService {
   /// Minutes before [LiveSession.startsAt] to fire the reminder.
   static const int reminderMinutesBefore = 5;
 
+  /// One pending live reminder. Kept constant across launches and upgrades so
+  /// scheduling again replaces the previous alert instead of adding another.
+  static const int liveReminderNotificationId = 108;
+
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
 
@@ -211,8 +215,6 @@ class NotificationService {
       throw StateError('Cannot schedule reminders without starts_at');
     }
 
-    await cancelSessionReminders(session.id);
-
     final when = startsAt.subtract(
       const Duration(minutes: reminderMinutesBefore),
     );
@@ -223,7 +225,6 @@ class NotificationService {
       );
     }
 
-    final id = _notificationId(session.id, reminderMinutesBefore);
     final title = session.title.trim().isEmpty
         ? 'Live meditation'
         : session.title.trim();
@@ -234,7 +235,7 @@ class NotificationService {
         : AndroidScheduleMode.exactAllowWhileIdle;
 
     await _plugin.zonedSchedule(
-      id,
+      liveReminderNotificationId,
       'Live session starting soon',
       '$title begins in $reminderMinutesBefore minutes. Tap to open Upcoming.',
       tz.TZDateTime.from(when, tz.local),
@@ -261,17 +262,11 @@ class NotificationService {
     return androidMode == AndroidScheduleMode.exactAllowWhileIdle;
   }
 
-  Future<void> cancelSessionReminders(String sessionId) async {
-    // Cancel current 5-min id and legacy 30/15/1 offsets from older builds.
-    for (final minutes in const [5, 30, 15, 1]) {
-      await _plugin.cancel(_notificationId(sessionId, minutes));
-    }
-  }
+  /// Cancels the single pending live reminder (id [liveReminderNotificationId]).
+  Future<void> cancelLiveReminder() =>
+      _plugin.cancel(liveReminderNotificationId);
 
+  /// Clears every notification this app scheduled, including copies left by
+  /// older builds that used an unstable id.
   Future<void> cancelAll() => _plugin.cancelAll();
-
-  /// Stable int id derived from session id + offset minutes.
-  int _notificationId(String sessionId, int minutesBefore) {
-    return Object.hash(sessionId, minutesBefore) & 0x7fffffff;
-  }
 }
