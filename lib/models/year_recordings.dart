@@ -48,6 +48,23 @@ class SessionVideo {
   }
 }
 
+/// Newest publication first. The API list is oldest-first; a missing date
+/// stays after dated videos, and ties keep the later playlist item first.
+List<SessionVideo> videosNewestFirst(List<SessionVideo> videos) {
+  final indexed = videos.asMap().entries.toList();
+  indexed.sort((a, b) {
+    final aAt = a.value.publishedAt;
+    final bAt = b.value.publishedAt;
+    if (aAt == null && bAt == null) return b.key.compareTo(a.key);
+    if (aAt == null) return 1;
+    if (bAt == null) return -1;
+    final byDate = bAt.compareTo(aAt);
+    if (byDate != 0) return byDate;
+    return b.key.compareTo(a.key);
+  });
+  return indexed.map((entry) => entry.value).toList(growable: false);
+}
+
 /// Config session with its slice of playlist videos.
 class RecordingSession {
   const RecordingSession({
@@ -97,7 +114,7 @@ class RecordingSession {
       videoCount: (json['video_count'] is num)
           ? (json['video_count'] as num).toInt()
           : videos.length,
-      videos: videos,
+      videos: videosNewestFirst(videos),
       startsAt: parseCalendarDate(json['starts_at']),
       endsAt: parseCalendarDate(json['ends_at']),
     );
